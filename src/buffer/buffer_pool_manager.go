@@ -11,6 +11,10 @@ const (
     AFTER
 )
 
+func boo(x page.Page) {
+    x.priv 
+}
+
 type bufferPoolCallbackFn func(CallbackType, PageID)
 
 type BufferPoolManager struct {
