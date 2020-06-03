@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"github.com/golang-collections/go-datastructures/futures"
+    "github.com/go-kit/kit/log/level"
 )
 
 /**
@@ -40,9 +41,15 @@ func NewDiskManager(dbFile string) *DiskManager {
         flushLog : false,
         flushLogF : nil,
     }
+
     n := strings.LastIndex(dbFile, ".")
     if n == -1 {
-        LOG_DEBUG
+        level.Debug(common.Logger).Log("wrong file format")
+        return nil
+    }
+    d.logName = dbFile[:n] + ".log"
+
+    //TODO: left here
 }
 
 /**
