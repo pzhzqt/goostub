@@ -10,7 +10,7 @@ var LogTimeout             time.Duration
 
 const (
     // invalid page id
-    InvaidPageID = -1
+    InvalidPageID = -1
     // invalid transaction id
     InvalidTxnID = -1
     // invalid log sequence number
