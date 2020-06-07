@@ -1,13 +1,14 @@
 package types
 
 import (
-    "fmt"
+	"errors"
+	"log"
 )
 
 type TypeID int
 
 const (
-    INVALID TypeID = 0
+    INVALID TypeID = iota
     BOOLEAN
     TINYINT
     SMALLINT
@@ -21,14 +22,13 @@ const (
 type CmpBool int
 
 const (
-    CmpFalse CmpBool = 0
+    CmpFalse CmpBool = iota
     CmpTrue
     CmpNull
 )
 
 type Type interface {
-    GetTypeSize(id TypeID)uint64
-    IsCoercableFrom(id TypeID)bool
+    IsCoercableFrom(TypeID)bool
     GetTypeID()TypeID
 
     // Comparisons
@@ -62,52 +62,140 @@ type Type interface {
     GetLength(Value)uint32
 }
 
-func TypeIDToString(id TypeID) {
+type GenericType struct {
+    id TypeID
 }
 
-func newInvalid()Type
-func newBoolean()Type
-func newTinyint()Type
-func newSmallint()Type
-func newInteger()Type
-func newBigint()Type
-func newDecimal()Type
-func newVarchar()Type
-func newTimestamp()Type
+func (t *GenericType) IsCoercableFrom(id TypeID)bool {
+    switch (t.id) {
+    case INVALID:
+        return false
+    case BOOLEAN:
+        return true
+    case TINYINT:
+    case SMALLINT:
+    case INTEGER:
+    case BIGINT:
+    case DECIMAL:
+        switch (id) {
+        case TINYINT:
+        case SMALLINT:
+        case INTEGER:
+        case BIGINT:
+        case DECIMAL:
+            return true
+        default:
+            return false
+        }
+    case TIMESTAMP:
+        return id == VARCHAR || id == TIMESTAMP
+    case VARCHAR:
+        switch (id) {
+        case INVALID:
+            return false
+        default:
+            return true
+        }
+    default:
+        return id == t.id
+    }
+
+    // stupidity check
+    log.Fatalln("If this prints out, there's a code error")
+    return false
+}
+
+func newInvalidType()Type
+func newBooleanType()Type
+func newTinyintType()Type
+func newSmallintType()Type
+func newIntegerType()Type
+func newBigintType()Type
+func newDecimalType()Type
+func newVarcharType()Type
+func newTimestampType()Type
 
 var typeConstructors = [...]func()Type {
-    newInvalid,
-    newBoolean,
-    newTinyint,
-    newSmallint,
-    newInteger,
-    newBigint,
-    newDecimal,
-    newVarchar,
-    newTimestamp,
+    newInvalidType,
+    newBooleanType,
+    newTinyintType,
+    newSmallintType,
+    newIntegerType,
+    newBigintType,
+    newDecimalType,
+    newVarcharType,
+    newTimestampType,
 }
 
 func NewType(id TypeID) Type {
     return typeConstructors[id]()
 }
 
-func GetMinValue(id TypeID) Value {
+func GetTypeSize(id TypeID) (uint64, error) {
+    switch (id) {
+    case BOOLEAN:
+    case TINYINT:
+        return 1, nil
+    case SMALLINT:
+        return 2, nil
+    case INTEGER:
+        return 4, nil
+    case BIGINT:
+    case DECIMAL:
+    case TIMESTAMP:
+        return 8, nil
+    case VARCHAR:
+        return 0, nil
+    default:
+        break
+    }
+    return 0, errors.New("Unknown Type")
 }
 
-func GetMaxValue(id TypeID) Value {
+func TypeIDToString(id TypeID) string {
+    switch (id) {
+    case INVALID:
+        return "INVALID"
+    case BOOLEAN:
+        return "BOOLEAN"
+    case TINYINT:
+        return "TINYINT"
+    case SMALLINT:
+        return "SMALLINT"
+    case INTEGER:
+      return "INTEGER"
+    case BIGINT:
+      return "BIGINT"
+    case DECIMAL:
+      return "DECIMAL"
+    case TIMESTAMP:
+      return "TIMESTAMP"
+    case VARCHAR:
+      return "VARCHAR"
+    default:
+      break;
+    }
+    return "INVALID"
+}
+
+//TODO: do it after Value
+func GetMinValue(id TypeID) (Value, error) {
+}
+
+func GetMaxValue(id TypeID) (Value, error) {
 }
 
 // singleton instances
 var k_types = [14]Type {
-    newInvalid(),
-    newBoolean(),
-    newTinyint(),
-    newSmallint(),
-    newInteger(),
-    newBigint(),
-    newDecimal(),
-    newVarchar(),
-    newTimestamp(),
+    newInvalidType(),
+    newBooleanType(),
+    newTinyintType(),
+    newSmallintType(),
+    newIntegerType(),
+    newBigintType(),
+    newDecimalType(),
+    newVarcharType(),
+    newTimestampType(),
 }
 
 func GetInstance(id TypeID) Type {
