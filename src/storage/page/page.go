@@ -37,7 +37,7 @@ type PageInstance struct {
 func NewPage() Page {
     p := &PageInstance{
         Data : [common.PageSize]byte{},
-        PageID : common.InvaidPageID,
+        PageID : common.InvalidPageID,
         PinCount : 0,
         Dirty : false,
         RWLatch : common.NewRWLatch(),
