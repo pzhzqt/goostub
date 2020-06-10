@@ -32,34 +32,34 @@ type Type interface {
     GetTypeID()TypeID
 
     // Comparisons
-    CompareEquals(Value, Value)CmpBool
-    CompareNotEquals(Value, Value)CmpBool
-    CompareLessThan(Value, Value)CmpBool
-    CompareLessThanEquals(Value, Value)CmpBool
-    CompareGreaterThan(Value, Value)CmpBool
-    CompareGreaterThanEquals(Value, Value)CmpBool
+    CompareEquals(*Value, *Value)CmpBool
+    CompareNotEquals(*Value, *Value)CmpBool
+    CompareLessThan(*Value, *Value)CmpBool
+    CompareLessThanEquals(*Value, *Value)CmpBool
+    CompareGreaterThan(*Value, *Value)CmpBool
+    CompareGreaterThanEquals(*Value, *Value)CmpBool
 
     // Math Functions
-    Add(Value, Value)Value
-    Subtract(Value, Value)Value
-    Multiply(Value, Value)Value
-    Divide(Value, Value)Value
-    Modulo(Value, Value)Value
-    Min(Value, Value)Value
-    Max(Value, Value)Value
-    Sqrt(Value)Value
-    OperateNull(Value, Value)Value
-    IsZero(Value)Value
+    Add(*Value, *Value)*Value
+    Subtract(*Value, *Value)*Value
+    Multiply(*Value, *Value)*Value
+    Divide(*Value, *Value)*Value
+    Modulo(*Value, *Value)*Value
+    Min(*Value, *Value)*Value
+    Max(*Value, *Value)*Value
+    Sqrt(*Value)*Value
+    OperateNull(*Value, *Value)*Value
+    IsZero(*Value)bool
     // Is the data in the struct storage or has indirection
-    IsInlined(Value)bool
-    ToString(Value)string
-    SerializeTo(Value, []byte)
-    DeserializeFrom([]byte)Value
-    Copy(Value)Value
-    CastAs(Value, id TypeID)Value
+    IsInlined(*Value)bool
+    ToString(*Value)string
+    SerializeTo(*Value, []byte)
+    DeserializeFrom([]byte)*Value
+    Copy(*Value)*Value
+    CastAs(*Value,TypeID)*Value
     // raw variable length data
-    GetData(Value)[]byte
-    GetLength(Value)uint32
+    GetData(*Value)[]byte
+    GetLength(*Value)uint32
 }
 
 type GenericType struct {
@@ -179,10 +179,10 @@ func TypeIDToString(id TypeID) string {
 }
 
 //TODO: do it after Value
-func GetMinValue(id TypeID) (Value, error) {
+func GetMinValue(id TypeID) *Value {
 }
 
-func GetMaxValue(id TypeID) (Value, error) {
+func GetMaxValue(id TypeID) *Value {
 }
 
 // singleton instances
