@@ -186,6 +186,7 @@ func NewValue(id TypeID, data ...interface{}) *Value {
         case int16:
             return newValueFromInt16(id, data[0].(int16))
         case int32:
+        case int:
             return newValueFromInt32(id, data[0].(int32))
         case int64:
             return newValueFromInt64(id, data[0].(int64))

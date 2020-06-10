@@ -3,6 +3,8 @@ package types
 import (
 	"errors"
 	"log"
+    "common"
+    "github.com/go-kit/kit/log/level"
 )
 
 type TypeID int
@@ -178,11 +180,56 @@ func TypeIDToString(id TypeID) string {
     return "INVALID"
 }
 
-//TODO: do it after Value
 func GetMinValue(id TypeID) *Value {
+    switch (id) {
+    case BOOLEAN:
+        return NewValue(id, 0)
+    case TINYINT:
+        return NewValue(id, GOOSTUB_INT8_MIN)
+    case SMALLINT:
+        return NewValue(id, GOOSTUB_INT16_MIN)
+    case INTEGER:
+        return NewValue(id, GOOSTUB_INT32_MIN)
+    case BIGINT:
+        return NewValue(id, GOOSTUB_INT64_MIN)
+    case DECIMAL:
+        return NewValue(id, GOOSTUB_DECIMAL_MIN)
+    case TIMESTAMP:
+        return NewValue(id, 0)
+    case VARCHAR:
+        return NewValue(id, ([]byte)(nil))
+    default:
+        break
+    }
+
+    level.Error(common.Logger).Log("Can't get max value")
+    return nil
 }
 
 func GetMaxValue(id TypeID) *Value {
+    switch (id) {
+    case BOOLEAN:
+        return NewValue(id, 1)
+    case TINYINT:
+        return NewValue(id, GOOSTUB_INT8_MAX)
+    case SMALLINT:
+        return NewValue(id, GOOSTUB_INT16_MAX)
+    case INTEGER:
+        return NewValue(id, GOOSTUB_INT32_MAX)
+    case BIGINT:
+        return NewValue(id, GOOSTUB_INT64_MAX)
+    case DECIMAL:
+        return NewValue(id, GOOSTUB_DECIMAL_MAX)
+    case TIMESTAMP:
+        return NewValue(id, GOOSTUB_TIMESTAMP_MAX)
+    case VARCHAR:
+        return NewValue(id, ([]byte)(nil), false)
+    default:
+        break
+    }
+
+    level.Error(common.Logger).Log("Can't get max value")
+    return nil
 }
 
 // singleton instances
