@@ -29,7 +29,7 @@ type Type interface {
     IsCoercableFrom(TypeID)bool
     GetTypeID()TypeID
 
-    // Comparisons
+    // Comparison
     Compare(*Value, *Value)CmpResult
 
     // Math Functions

@@ -1,9 +1,10 @@
 package types
 
 import (
-	"log"
     "common"
     "github.com/go-kit/kit/log/level"
+	"log"
+    "math"
 )
 
 type BaseType struct {
@@ -96,8 +97,36 @@ func (t *BaseType) Max(l *Value,r *Value) *Value {
 }
 
 func (t *BaseType) Sqrt(v *Value) *Value {
-    level.Error(common.Logger).Log("Sqrt not implemented")
-    return nil
+    var val float64
+
+    switch (v.typeID) {
+    case TINYINT:
+        val = float64(v.val.(int8))
+        break
+    case SMALLINT:
+        val = float64(v.val.(int16))
+        break
+    case INTEGER:
+        val = float64(v.val.(int32))
+    case BIGINT:
+        val = float64(v.val.(int64))
+    case DECIMAL:
+        val = v.val.(float64)
+    default:
+        level.Error(common.Logger).Log("Can't take square root of non-numeric type")
+        return nil
+    }
+
+    if v.IsNull() {
+        return NewValue(DECIMAL, GOOSTUB_DECIMAL_NULL)
+    }
+
+    if val < 0 {
+        level.Error(common.Logger).Log("Can't take square root of a negative number")
+        return nil
+    }
+
+    return NewValue(DECIMAL, math.Sqrt(val))
 }
 
 func (t *BaseType) OperateNull(l *Value,r *Value) *Value {
@@ -151,8 +180,12 @@ func (t *BaseType) GetLength(v *Value) uint32 {
     return 0
 }
 
-func newInvalidType() Type {
+func newBaseType(tid TypeID) Type {
     return &BaseType {
-        id: INVALID,
+        id: tid,
     }
+}
+
+func newInvalidType() Type {
+    return newBaseType(INVALID)
 }

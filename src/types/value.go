@@ -4,6 +4,7 @@ import (
     "log"
     "common"
     "github.com/go-kit/kit/log/level"
+    "math"
 )
 
 type Value struct {
@@ -390,3 +391,8 @@ func newVarlen(id TypeID, data []byte, manageData bool) *Value {
 
     return value
 }
+
+func valMod(x float64, y float64) float64 {
+    return x - math.Trunc(x/y) * y
+}
+
