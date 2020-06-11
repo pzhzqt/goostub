@@ -83,30 +83,10 @@ func (v *Value) CastAs(id TypeID) *Value {
     return GetInstance(v.typeID).CastAs(v, id)
 }
 
-// Comparison Methods
+// Comparison Method
 
-func (v *Value) CompareEquals(other *Value) CmpBool {
-    return GetInstance(v.typeID).CompareEquals(v, other)
-}
-
-func (v *Value) CompareNotEquals(other *Value) CmpBool {
-    return GetInstance(v.typeID).CompareNotEquals(v, other)
-}
-
-func (v *Value) CompareLessThan(other *Value) CmpBool {
-    return GetInstance(v.typeID).CompareLessThan(v, other)
-}
-
-func (v *Value) CompareLessThanEquals(other *Value) CmpBool {
-    return GetInstance(v.typeID).CompareLessThanEquals(v, other)
-}
-
-func (v *Value) CompareGreaterThan(other *Value) CmpBool {
-    return GetInstance(v.typeID).CompareGreaterThan(v, other)
-}
-
-func (v *Value) CompareGreaterThanEquals(other *Value) CmpBool {
-    return GetInstance(v.typeID).CompareGreaterThanEquals(v, other)
+func (v *Value) CompareTo(other *Value) CmpResult {
+    return GetInstance(v.typeID).Compare(v, other)
 }
 
 // Other mathematical functions
@@ -147,7 +127,7 @@ func (v *Value) OperateNull(other *Value) *Value {
     return GetInstance(v.typeID).OperateNull(v, other)
 }
 
-func (v *Value) IsZero() bool {
+func (v *Value) IsZero() int8 {
     return GetInstance(v.typeID).IsZero(v)
 }
 
@@ -155,11 +135,11 @@ func (v *Value) IsNull() bool {
     return v.size == GOOSTUB_VALUE_NULL
 }
 
-func (v *Value) SerializeTo(storage []byte) {
+func (v *Value) SerializeTo(storage *byte) {
     GetInstance(v.typeID).SerializeTo(v, storage)
 }
 
-func (v *Value) DeserializeFrom(storage []byte, id TypeID) *Value {
+func (v *Value) DeserializeFrom(storage *byte, id TypeID) *Value {
     return GetInstance(v.typeID).DeserializeFrom(storage)
 }
 
@@ -198,6 +178,8 @@ func NewValue(id TypeID, data ...interface{}) *Value {
             return newValueFromFloat(id, data[0].(float64))
         case []byte:
             return newVarlen(id, data[0].([]byte), true)
+        case string:
+            return newVarlen(id, ([]byte)(data[0].(string)), true)
         default:
             break
         }

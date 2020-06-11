@@ -2,7 +2,6 @@ package types
 
 import (
 	"errors"
-	"log"
     "common"
     "github.com/go-kit/kit/log/level"
 )
@@ -21,25 +20,17 @@ const (
     TIMESTAMP
 )
 
-type CmpBool int
-
-const (
-    CmpFalse CmpBool = iota
-    CmpTrue
-    CmpNull
-)
+// The original comparison in BusTub is super WET, and thus I reduced it to a simple Compare and CompareTo function
+// -1 => left < right, 0 => left == right, 1 => left > right
+// nil == not comparable
+type CmpResult *int
 
 type Type interface {
     IsCoercableFrom(TypeID)bool
     GetTypeID()TypeID
 
     // Comparisons
-    CompareEquals(*Value, *Value)CmpBool
-    CompareNotEquals(*Value, *Value)CmpBool
-    CompareLessThan(*Value, *Value)CmpBool
-    CompareLessThanEquals(*Value, *Value)CmpBool
-    CompareGreaterThan(*Value, *Value)CmpBool
-    CompareGreaterThanEquals(*Value, *Value)CmpBool
+    Compare(*Value, *Value)CmpResult
 
     // Math Functions
     Add(*Value, *Value)*Value
@@ -51,12 +42,15 @@ type Type interface {
     Max(*Value, *Value)*Value
     Sqrt(*Value)*Value
     OperateNull(*Value, *Value)*Value
-    IsZero(*Value)bool
+
+    // int8's below are bool type, use int8 so -1 can be used to indicate error
+    IsZero(*Value)int8
     // Is the data in the struct storage or has indirection
-    IsInlined(*Value)bool
+    IsInlined(*Value)int8
+
     ToString(*Value)string
-    SerializeTo(*Value, []byte)
-    DeserializeFrom([]byte)*Value
+    SerializeTo(*Value, *byte)
+    DeserializeFrom(*byte)*Value
     Copy(*Value)*Value
     CastAs(*Value,TypeID)*Value
     // raw variable length data
@@ -64,51 +58,6 @@ type Type interface {
     GetLength(*Value)uint32
 }
 
-type GenericType struct {
-    id TypeID
-}
-
-func (t *GenericType) IsCoercableFrom(id TypeID)bool {
-    switch (t.id) {
-    case INVALID:
-        return false
-    case BOOLEAN:
-        return true
-    case TINYINT:
-    case SMALLINT:
-    case INTEGER:
-    case BIGINT:
-    case DECIMAL:
-        switch (id) {
-        case TINYINT:
-        case SMALLINT:
-        case INTEGER:
-        case BIGINT:
-        case DECIMAL:
-            return true
-        default:
-            return false
-        }
-    case TIMESTAMP:
-        return id == VARCHAR || id == TIMESTAMP
-    case VARCHAR:
-        switch (id) {
-        case INVALID:
-            return false
-        default:
-            return true
-        }
-    default:
-        return id == t.id
-    }
-
-    // stupidity check
-    log.Fatalln("If this prints out, there's a code error")
-    return false
-}
-
-func newInvalidType()Type
-func newBooleanType()Type
 func newTinyintType()Type
 func newSmallintType()Type
 func newIntegerType()Type
