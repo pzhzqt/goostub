@@ -129,14 +129,47 @@ func (t *BaseType) Sqrt(v *Value) *Value {
     return NewValue(DECIMAL, math.Sqrt(val))
 }
 
-func (t *BaseType) OperateNull(l *Value,r *Value) *Value {
-    level.Error(common.Logger).Log("OperateNull not implemented")
-    return nil
+func (t *BaseType) OperateNull(l *Value, r *Value) *Value {
+    if !l.IsNumeric() || !r.IsNumeric() {
+        level.Error(common.Logger).Log("OperateNull not implemented for types")
+        return nil
+    }
+
+    if l.typeID < r.typeID {
+        return newNullValue(r.typeID)
+    } else {
+        return newNullValue(l.typeID)
+    }
 }
 
 func (t *BaseType) IsZero(v *Value) int8 {
-    level.Error(common.Logger).Log("IsZero not implemented")
-    return -1
+    var val float64
+    switch v.val.(type) {
+    case int8:
+        val = float64(v.val.(int8))
+        break
+    case int16:
+        val = float64(v.val.(int16))
+        break
+    case int32:
+        val = float64(v.val.(int32))
+        break
+    case int64:
+        val = float64(v.val.(int64))
+        break
+    case float64:
+        val = v.val.(float64)
+        break
+    default:
+        level.Error(common.Logger).Log("IsZero not implemented for this type")
+        return -1
+    }
+
+    if val == 0 {
+        return 1
+    }
+
+    return 0
 }
 
 func (t *BaseType) IsInlined(v *Value) int8 {
@@ -159,8 +192,7 @@ func (t *BaseType) DeserializeFrom(storage *byte) *Value {
 }
 
 func (t *BaseType) Copy(v *Value) *Value {
-    level.Error(common.Logger).Log("Copy not implemented")
-    return nil
+    return CopyValue(v)
 }
 
 func (t *BaseType) CastAs(v *Value, id TypeID) *Value {
@@ -180,12 +212,12 @@ func (t *BaseType) GetLength(v *Value) uint32 {
     return 0
 }
 
-func newBaseType(tid TypeID) Type {
+func newBaseType(tid TypeID) *BaseType {
     return &BaseType {
         id: tid,
     }
 }
 
-func newInvalidType() Type {
+func newInvalidType() *BaseType {
     return newBaseType(INVALID)
 }

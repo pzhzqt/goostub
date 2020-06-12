@@ -152,6 +152,10 @@ func (v *Value) Copy() *Value {
     return GetInstance(v.typeID).Copy(v)
 }
 
+func (v *Value) IsNumeric() bool {
+    return v.typeID >= TINYINT && v.typeID <= DECIMAL
+}
+
 /*****************************/
 /*****Value Constructors******/
 /*****************************/
@@ -229,8 +233,9 @@ func Swap(first *Value, second *Value) {
 
 func newNullValue(id TypeID) *Value {
     return &Value {
-        typeID :     id,
-        size :       GOOSTUB_VALUE_NULL,
+        typeID     : id,
+        val        : GetNull(id),
+        size       : GOOSTUB_VALUE_NULL,
         manageData : false,
     }
 }

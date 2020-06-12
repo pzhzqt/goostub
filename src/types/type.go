@@ -58,7 +58,6 @@ type Type interface {
     GetLength(*Value)uint32
 }
 
-func newTinyintType()Type
 func newSmallintType()Type
 func newIntegerType()Type
 func newBigintType()Type

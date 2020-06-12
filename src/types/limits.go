@@ -47,3 +47,28 @@ const (
     // VARCHAR objects WITH NULL length are NULL
     OBJECTLENGTH_NULL       int    = -1
 )
+
+func GetNull(id TypeID) interface{} {
+    switch (id) {
+    case INVALID:
+        return GOOSTUB_VALUE_NULL
+    case BOOLEAN:
+        return GOOSTUB_BOOLEAN_NULL
+    case TINYINT:
+        return GOOSTUB_INT8_NULL
+    case SMALLINT:
+        return GOOSTUB_INT16_NULL
+    case INTEGER:
+        return GOOSTUB_INT32_NULL
+    case BIGINT:
+        return GOOSTUB_INT64_NULL
+    case DECIMAL:
+        return GOOSTUB_DECIMAL_NULL
+    case TIMESTAMP:
+        return GOOSTUB_TIMESTAMP_NULL
+    default:
+        break
+    }
+
+    return nil
+}

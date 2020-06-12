@@ -11,11 +11,9 @@ type BooleanType struct {
     BaseType
 }
 
-func newBooleanType() Type {
+func newBooleanType() *BooleanType {
     return &BooleanType {
-        BaseType {
-            id : BOOLEAN,
-        },
+        *newBaseType(BOOLEAN),
     }
 }
 
