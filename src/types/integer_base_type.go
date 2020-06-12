@@ -2,6 +2,7 @@ package types
 
 import (
 	"common"
+    "log"
 	"math"
 	"github.com/go-kit/kit/log/level"
 )
@@ -16,45 +17,51 @@ func newIntegerBaseType(id TypeID) *IntegerBaseType {
     }
 }
 
-func (t *IntegerBaseType) Min(l *Value, r *Value) *Value {
-    if !t.operandCheck(l, r) {
-        return nil
+// Unfortunately there's no macro in go, otherwise this file could be a lot more DRY
+
+func (t *IntegerBaseType) Min(l *Value, r *Value) (*Value, error) {
+    err := t.operandCheck(l, r)
+    if err != nil {
+        return nil, err
     }
 
     if l.IsNull() || r.IsNull() {
-        return l.OperateNull(r)
+        return l.OperateNull(r), nil
     }
 
-    if *l.CompareTo(r) < 0 {
-        return l.Copy()
+    if l.CompareTo(r) < 0 {
+        return l.Copy(), nil
     }
 
-    return r.Copy()
+    return r.Copy(), nil
 }
 
-func (t *IntegerBaseType) Max(l *Value, r *Value) *Value {
-    if !t.operandCheck(l, r) {
-        return nil
+func (t *IntegerBaseType) Max(l *Value, r *Value) (*Value, error) {
+    err := t.operandCheck(l, r)
+    if err != nil {
+        return nil, err
     }
 
     if l.IsNull() || r.IsNull() {
-        return l.OperateNull(r)
+        return l.OperateNull(r), nil
     }
 
-    if *l.CompareTo(r) > 0 {
-        return l.Copy()
+    if l.CompareTo(r) > 0 {
+        return l.Copy(), nil
     }
 
-    return r.Copy()
+    return r.Copy(), nil
 }
 
-func (t *IntegerBaseType) Compare(l *Value, r *Value) CmpResult {
-    if !t.operandCheck(l, r) {
-        return nil
+func (t *IntegerBaseType) Compare(l *Value, r *Value) (CmpResult, error) {
+    err := t.operandCheck(l, r)
+    if err != nil {
+        return 0, err
     }
 
     if l.IsNull() || r.IsNull() {
-        return nil
+        return 0, common.NewError(common.INVALID,
+            "Null Value is not comparable")
     }
 
     if !r.CheckInteger() {
@@ -65,7 +72,7 @@ func (t *IntegerBaseType) Compare(l *Value, r *Value) CmpResult {
     lval := getValAsBIGINT(l)
     rval := getValAsBIGINT(r)
 
-    var ret int
+    var ret CmpResult
 
     if (lval < rval) {
         ret = -1
@@ -75,12 +82,17 @@ func (t *IntegerBaseType) Compare(l *Value, r *Value) CmpResult {
         ret = 0
     }
 
-    return &ret
+    return ret, nil
 }
 
-func (t *IntegerBaseType) Add(l *Value, r *Value) *Value {
-    if !t.operandCheck(l, r) {
-        return nil
+func (t *IntegerBaseType) Add(l *Value, r *Value) (*Value, error) {
+    err := t.operandCheck(l, r)
+    if err != nil {
+        return nil, err
+    }
+
+    if l.IsNull() || r.IsNull() {
+        return l.OperateNull(r), nil
     }
 
     if !r.CheckInteger() {
@@ -88,99 +100,6 @@ func (t *IntegerBaseType) Add(l *Value, r *Value) *Value {
         return GetInstance(r.typeID).Add(l, r)
     }
 
-    if l.IsNull() || r.IsNull() {
-        return l.OperateNull(r)
-    }
-
-    return t.addInt(l, r)
-}
-
-func (t *IntegerBaseType) Subtract(l *Value, r *Value) *Value {
-    if !t.operandCheck(l, r) {
-        return nil
-    }
-
-    if !r.CheckInteger() {
-        // integer type only handles operations between ints
-        return GetInstance(r.typeID).Subtract(l, r)
-    }
-
-    if l.IsNull() || r.IsNull() {
-        return l.OperateNull(r)
-    }
-
-    return t.subtractInt(l, r)
-}
-
-func (t *IntegerBaseType) Multiply(l *Value, r *Value) *Value {
-    if !t.operandCheck(l, r) {
-        return nil
-    }
-
-    if !r.CheckInteger() {
-        // integer type only handles operations between ints
-        return GetInstance(r.typeID).Multiply(l, r)
-    }
-
-    if l.IsNull() || r.IsNull() {
-        return l.OperateNull(r)
-    }
-
-    return t.multiplyInt(l, r)
-}
-
-func (t *IntegerBaseType) Divide(l *Value, r *Value) *Value {
-    if !t.operandCheck(l, r) {
-        return nil
-    }
-
-    if !r.CheckInteger() {
-        // integer type only handles operations between ints
-        return GetInstance(r.typeID).Divide(l, r)
-    }
-
-    if l.IsNull() || r.IsNull() {
-        return l.OperateNull(r)
-    }
-
-    return t.divideInt(l, r)
-}
-
-func (t *IntegerBaseType) Modulo(l *Value, r *Value) *Value {
-    if !t.operandCheck(l, r) {
-        return nil
-    }
-
-    if !r.CheckInteger() {
-        // integer type only handles operations between ints
-        return GetInstance(r.typeID).Divide(l, r)
-    }
-
-    if l.IsNull() || r.IsNull() {
-        return l.OperateNull(r)
-    }
-
-    return t.moduloInt(l, r)
-}
-
-// helper functions
-
-func (t *IntegerBaseType) operandCheck(l *Value, r *Value) bool {
-    if !l.CheckInteger() {
-        level.Error(common.Logger).Log("Integer member function called from non-integer struct")
-        return false
-    }
-
-    if !l.CheckComparable(r) {
-        level.Error(common.Logger).Log("Not comparable")
-        return false
-    }
-
-    return true
-}
-
-// caller is responsible for null check
-func (t *IntegerBaseType) addInt(l *Value, r *Value) *Value {
     id := l.typeID
     if id < r.typeID {
         id = r.typeID
@@ -191,27 +110,71 @@ func (t *IntegerBaseType) addInt(l *Value, r *Value) *Value {
 
     if (x > 0 && y > math.MaxInt64 - x) || (x < 0 && y < math.MinInt64 - x) {
     // Overflow 64 bits
-        level.Debug(common.Logger).Log("Overflow")
-        return nil
+        return nil, common.NewError(common.OUT_OF_RANGE, "Result out of range")
     }
 
     res := x + y
 
     if intOverflow(res, id) {
-        return nil
+        return nil, common.NewError(common.OUT_OF_RANGE, "Result out of range")
     }
 
-    return NewValue(id, res)
+    return NewValue(id, res), nil
 }
 
-// caller is responsible for null check
-func (t *IntegerBaseType) subtractInt(l *Value, r *Value) *Value {
-    nr := NewValue(r.typeID, -getValAsBIGINT(r))
-    return t.addInt(l, nr)
+// we could use Add to implement substract, however we don't do this for performance purpose
+func (t *IntegerBaseType) Subtract(l *Value, r *Value) (*Value, error) {
+    err := t.operandCheck(l, r)
+    if err != nil {
+        return nil, err
+    }
+
+    if l.IsNull() || r.IsNull() {
+        return l.OperateNull(r), nil
+    }
+
+    if !r.CheckInteger() {
+        // integer type only handles operations between ints
+        return GetInstance(r.typeID).Add(l, r)
+    }
+
+    id := l.typeID
+    if id < r.typeID {
+        id = r.typeID
+    }
+
+    x := getValAsBIGINT(l)
+    y := getValAsBIGINT(r)
+
+    if (x > 0 && y < x - math.MaxInt64) || (x < 0 && y > x - math.MinInt64) {
+    // Overflow 64 bits
+        return nil, common.NewError(common.OUT_OF_RANGE, "Result out of range")
+    }
+
+    res := x - y
+
+    if intOverflow(res, id) {
+        return nil, common.NewError(common.OUT_OF_RANGE, "Result out of range")
+    }
+
+    return NewValue(id, res), nil
 }
 
-// caller is responsible for null check
-func (t *IntegerBaseType) multiplyInt(l *Value, r *Value) *Value {
+func (t *IntegerBaseType) Multiply(l *Value, r *Value) (*Value, error) {
+    err := t.operandCheck(l, r)
+    if err != nil {
+        return nil, err
+    }
+
+    if l.IsNull() || r.IsNull() {
+        return l.OperateNull(r), nil
+    }
+
+    if !r.CheckInteger() {
+        // integer type only handles operations between ints
+        return GetInstance(r.typeID).Add(l, r)
+    }
+
     id := l.typeID
     if id < r.typeID {
         id = r.typeID
@@ -222,21 +185,33 @@ func (t *IntegerBaseType) multiplyInt(l *Value, r *Value) *Value {
 
     if (x > 0 && (y > math.MaxInt64/x || y < math.MinInt64/x)) || (x < 0 && (y < math.MaxInt64/x || y > math.MinInt64/x)) {
     // Overflow 64 bits
-        level.Debug(common.Logger).Log("Overflow")
-        return nil
+        return nil, common.NewError(common.OUT_OF_RANGE, "Result out of range")
     }
 
     res := x * y
 
     if intOverflow(res, id) {
-        return nil
+        return nil, common.NewError(common.OUT_OF_RANGE, "Result out of range")
     }
 
-    return NewValue(id, res)
+    return NewValue(id, res), nil
 }
 
-// caller is responsible for null check
-func (t *IntegerBaseType) divideInt(l *Value, r *Value) *Value {
+func (t *IntegerBaseType) Divide(l *Value, r *Value) (*Value, error) {
+    err := t.operandCheck(l, r)
+    if err != nil {
+        return nil, err
+    }
+
+    if l.IsNull() || r.IsNull() {
+        return l.OperateNull(r), nil
+    }
+
+    if !r.CheckInteger() {
+        // integer type only handles operations between ints
+        return GetInstance(r.typeID).Add(l, r)
+    }
+
     id := l.typeID
     if id < r.typeID {
         id = r.typeID
@@ -246,15 +221,28 @@ func (t *IntegerBaseType) divideInt(l *Value, r *Value) *Value {
     y := getValAsBIGINT(r)
 
     if y == 0 {
-        level.Error(common.Logger).Log("Divide by zero")
-        return nil
+        return nil, common.NewError(common.DIVIDE_BY_ZERO,
+            "Divide by zero")
     }
 
-    return NewValue(id, x/y)
+    return NewValue(id, x/y), nil
 }
 
-// caller is responsible for null check
-func (t *IntegerBaseType) moduloInt(l *Value, r *Value) *Value {
+func (t *IntegerBaseType) Modulo(l *Value, r *Value) (*Value, error) {
+    err := t.operandCheck(l, r)
+    if err != nil {
+        return nil, err
+    }
+
+    if l.IsNull() || r.IsNull() {
+        return l.OperateNull(r), nil
+    }
+
+    if !r.CheckInteger() {
+        // integer type only handles operations between ints
+        return GetInstance(r.typeID).Add(l, r)
+    }
+
     id := l.typeID
     if id < r.typeID {
         id = r.typeID
@@ -264,11 +252,26 @@ func (t *IntegerBaseType) moduloInt(l *Value, r *Value) *Value {
     y := getValAsBIGINT(r)
 
     if y == 0 {
-        level.Error(common.Logger).Log("Divide by zero")
-        return nil
+        return nil, common.NewError(common.DIVIDE_BY_ZERO,
+            "Divide by zero")
     }
 
-    return NewValue(id, x % y)
+    return NewValue(id, x % y), nil
+}
+
+// helper functions
+
+func (t *IntegerBaseType) operandCheck(l *Value, r *Value) error {
+    if !l.CheckInteger() {
+        log.Fatalln("Integer member function called on non-integer value")
+    }
+
+    if !l.CheckComparable(r) {
+        return common.NewErrorf(common.MISMATCH_TYPE,
+            "Mismatched types of %s and %s", TypeIDToString(l.typeID), TypeIDToString(r.typeID))
+    }
+
+    return nil
 }
 
 func getValAsBIGINT(v *Value) int64 {

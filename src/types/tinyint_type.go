@@ -3,6 +3,7 @@ package types
 import (
 	"common"
 	"github.com/go-kit/kit/log/level"
+    "log"
     "unsafe"
     "strconv"
 )
@@ -17,44 +18,42 @@ func newTinyintType() *TinyintType {
     }
 }
 
-func (t *TinyintType) ToString(v *Value) string {
+func (t *TinyintType) ToString(v *Value) (string, error) {
     if v.IsNull() {
-        return "tinyint_null"
+        return "tinyint_null", nil
     }
 
     val, ok := v.val.(int8)
     if !ok {
-        level.Error(common.Logger).Log("Type Error")
-        return ""
+        log.Fatalln("tinyint member function called on non-tinyint value")
     }
 
-    return strconv.FormatInt(int64(val), 10)
+    return strconv.FormatInt(int64(val), 10), nil
 }
 
-func (t *TinyintType) SerializeTo(v *Value, storage *byte) {
+func (t *TinyintType) SerializeTo(v *Value, storage *byte) error {
     val, ok := v.val.(int8)
     if !ok {
-        level.Error(common.Logger).Log("Type Error")
-        return
+        log.Fatalln("tinyint member function called on non-tinyint value")
     }
 
     *(*int8)(unsafe.Pointer(storage)) = val
+    return nil
 }
 
-func (t *TinyintType) DeserializeFrom(storage *byte) *Value {
+func (t *TinyintType) DeserializeFrom(storage *byte) (*Value, error) {
     val := *(*int8)(unsafe.Pointer(storage))
-    return NewValue(t.id, val)
+    return NewValue(t.id, val), nil
 }
 
-func (t *TinyintType) CastAs(v *Value, id TypeID) *Value {
+func (t *TinyintType) CastAs(v *Value, id TypeID) (*Value, error) {
     val, ok := v.val.(int8)
     if !ok {
-        level.Error(common.Logger).Log("Type Error")
-        return nil
+        log.Fatalln("tinyint member function called on non-tinyint value")
     }
 
     if v.IsNull() {
-        return newNullValue(id)
+        return newNullValue(id), nil
     }
 
     switch (id) {
@@ -62,15 +61,16 @@ func (t *TinyintType) CastAs(v *Value, id TypeID) *Value {
     case SMALLINT:
     case INTEGER:
     case BIGINT:
-        return NewValue(id, val)
+        return NewValue(id, val), nil
     case DECIMAL:
-        return NewValue(id, float64(val))
+        return NewValue(id, float64(val)), nil
     case VARCHAR:
-        return NewValue(id, v.ToString())
+        return NewValue(id, v.ToString()), nil
     default:
         break
     }
 
-    level.Error(common.Logger).Log("tinyint is not coercable to this type")
-    return nil
+    level.Error(common.Logger).Log()
+    return nil, common.NewErrorf(common.INVALID,
+        "tinyint is not coercable to %s", TypeIDToString(id))
 }

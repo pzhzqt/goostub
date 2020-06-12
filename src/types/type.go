@@ -22,40 +22,38 @@ const (
 
 // The original comparison in BusTub is super WET, and thus I reduced it to a simple Compare and CompareTo function
 // -1 => left < right, 0 => left == right, 1 => left > right
-// nil == not comparable
-type CmpResult *int
+type CmpResult int
 
 type Type interface {
-    IsCoercableFrom(TypeID)bool
-    GetTypeID()TypeID
+    IsCoercableFrom(TypeID) bool
+    GetTypeID() TypeID
 
     // Comparison
-    Compare(*Value, *Value)CmpResult
+    Compare(*Value, *Value) (CmpResult, error)
 
     // Math Functions
-    Add(*Value, *Value)*Value
-    Subtract(*Value, *Value)*Value
-    Multiply(*Value, *Value)*Value
-    Divide(*Value, *Value)*Value
-    Modulo(*Value, *Value)*Value
-    Min(*Value, *Value)*Value
-    Max(*Value, *Value)*Value
-    Sqrt(*Value)*Value
-    OperateNull(*Value, *Value)*Value
+    Add(*Value, *Value) (*Value, error)
+    Subtract(*Value, *Value) (*Value, error)
+    Multiply(*Value, *Value) (*Value, error)
+    Divide(*Value, *Value) (*Value, error)
+    Modulo(*Value, *Value) (*Value, error)
+    Min(*Value, *Value) (*Value, error)
+    Max(*Value, *Value) (*Value, error)
+    Sqrt(*Value) (*Value, error)
+    OperateNull(*Value, *Value) (*Value, error)
 
-    // int8's below are bool type, use int8 so -1 can be used to indicate error
-    IsZero(*Value)int8
+    IsZero(*Value) (bool, error)
     // Is the data in the struct storage or has indirection
-    IsInlined(*Value)int8
+    IsInlined(*Value) (bool , error)
 
-    ToString(*Value)string
-    SerializeTo(*Value, *byte)
-    DeserializeFrom(*byte)*Value
-    Copy(*Value)*Value
-    CastAs(*Value,TypeID)*Value
+    ToString(*Value) (string, error)
+    SerializeTo(*Value, *byte) error
+    DeserializeFrom(*byte) (*Value, error)
+    Copy(*Value) *Value
+    CastAs(*Value,TypeID) (*Value, error)
     // raw variable length data
-    GetData(*Value)[]byte
-    GetLength(*Value)uint32
+    GetData(*Value) ([]byte, error)
+    GetLength(*Value) (uint32, error)
 }
 
 func newSmallintType()Type
@@ -64,22 +62,6 @@ func newBigintType()Type
 func newDecimalType()Type
 func newVarcharType()Type
 func newTimestampType()Type
-
-var typeConstructors = [...]func()Type {
-    newInvalidType,
-    newBooleanType,
-    newTinyintType,
-    newSmallintType,
-    newIntegerType,
-    newBigintType,
-    newDecimalType,
-    newVarcharType,
-    newTimestampType,
-}
-
-func NewType(id TypeID) Type {
-    return typeConstructors[id]()
-}
 
 func GetTypeSize(id TypeID) (uint64, error) {
     switch (id) {

@@ -3,7 +3,6 @@ package types
 import (
     "log"
     "common"
-    "github.com/go-kit/kit/log/level"
     "unsafe"
 )
 
@@ -17,24 +16,20 @@ func newBooleanType() *BooleanType {
     }
 }
 
-func (t *BooleanType) Compare(l *Value, r *Value) CmpResult {
+func (t *BooleanType) Compare(l *Value, r *Value) (CmpResult, error) {
     if t.GetTypeID() != BOOLEAN {
         log.Fatalln("BooleanType member function called from non-boolean type")
     }
 
-    if !l.CheckComparable(r) {
-        level.Error(common.Logger).Log("Not comparable")
-        return nil
-    }
-
-    if l.IsNull() || r.IsNull() {
-        return nil
+    if !l.CheckComparable(r) || l.IsNull() || r.IsNull() {
+        return 0, common.NewErrorf(common.MISMATCH_TYPE,
+            "%s and %s are not comparable", TypeIDToString(l.typeID), TypeIDToString(r.typeID))
     }
 
     lval := l.CastAs(BOOLEAN).val.(int8)
     rval := r.CastAs(BOOLEAN).val.(int8)
 
-    var ret int
+    var ret CmpResult
 
     if lval < rval {
         ret = -1
@@ -44,52 +39,49 @@ func (t *BooleanType) Compare(l *Value, r *Value) CmpResult {
         ret = 0
     }
 
-    return &ret
+    return ret, nil
 }
 
-func (t *BooleanType) IsInlined(v *Value) int8 {
-    return 1
+func (t *BooleanType) IsInlined(v *Value) (bool, error) {
+    return true, nil
 }
 
-func (t *BooleanType) ToString(v *Value) string {
+func (t *BooleanType) ToString(v *Value) (string, error) {
     if t.GetTypeID() != BOOLEAN {
         log.Fatalln("BooleanType member function called from non-boolean type")
     }
 
     if v.val.(int8) == 1 {
-        return "true"
+        return "true", nil
     } else if v.val.(int8) == 0 {
-        return "false"
+        return "false", nil
     }
 
-    return "boolean_null"
+    return "boolean_null", nil
 }
 
-func (t *BooleanType) SerializeTo(v *Value, storage *byte) {
+func (t *BooleanType) SerializeTo(v *Value, storage *byte) error {
     *(*int8)(unsafe.Pointer(storage)) = v.val.(int8)
+    return nil
 }
 
-func (t *BooleanType) DeserializeFrom(storage *byte) *Value {
+func (t *BooleanType) DeserializeFrom(storage *byte) (*Value, error) {
     val := *(*int8)(unsafe.Pointer(storage))
-    return NewValue(BOOLEAN, val)
+    return NewValue(BOOLEAN, val), nil
 }
 
-func (t *BooleanType) Copy(v *Value) *Value {
-    return NewValue(BOOLEAN, v.val.(int8))
-}
-
-func (t *BooleanType) CastAs(v *Value, id TypeID) *Value {
+func (t *BooleanType) CastAs(v *Value, id TypeID) (*Value, error) {
     switch (id) {
     case BOOLEAN:
-        return t.Copy(v)
+        return t.Copy(v), nil
     case VARCHAR:
         if (v.IsNull()) {
-            return NewValue(VARCHAR, nil, false)
+            return NewValue(VARCHAR, nil, false), nil
         }
-        return NewValue(VARCHAR, v.ToString())
+        return NewValue(VARCHAR, v.ToString()), nil
     default:
         break
     }
-    level.Error(common.Logger).Log("Boolean is not coercable to ",TypeIDToString(id))
-    return nil
+    return nil, common.NewErrorf(common.INVALID,
+        "Boolean is not coearcible to %s", TypeIDToString(id))
 }
