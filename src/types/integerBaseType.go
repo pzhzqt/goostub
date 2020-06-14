@@ -259,6 +259,31 @@ func (t *IntegerBaseType) Modulo(l *Value, r *Value) (*Value, error) {
     return NewValue(id, x % y), nil
 }
 
+func (t *IntegerBaseType) CastAs(v *Value, id TypeID) (*Value, error) {
+    if v.IsNull() {
+        return newNullValue(id), nil
+    }
+
+    val := getValAsBIGINT(v)
+
+    switch (id) {
+    case TINYINT:
+    case SMALLINT:
+    case INTEGER:
+    case BIGINT:
+        return NewValue(id, val), nil
+    case DECIMAL:
+        return NewValue(id, float64(val)), nil
+    case VARCHAR:
+        return NewValue(id, v.ToString()), nil
+    default:
+        break
+    }
+
+    return nil, common.NewErrorf(common.INVALID,
+        "%s is not coercable to %s", TypeIDToString(v.typeID), TypeIDToString(id))
+}
+
 // helper functions
 
 func (t *IntegerBaseType) operandCheck(l *Value, r *Value) error {
@@ -275,6 +300,10 @@ func (t *IntegerBaseType) operandCheck(l *Value, r *Value) error {
 }
 
 func getValAsBIGINT(v *Value) int64 {
+    if !v.CheckInteger() {
+        log.Fatalln("getValAsBIGINT can only be called on integer value")
+    }
+
     switch (v.GetTypeID()) {
     case TINYINT:
         return int64(v.val.(int8))
@@ -287,6 +316,8 @@ func getValAsBIGINT(v *Value) int64 {
     default:
         break
     }
+
+    log.Fatalln("this shouldn't print out")
     return GOOSTUB_INT64_NULL
 }
 

@@ -56,9 +56,6 @@ type Type interface {
     GetLength(*Value) (uint32, error)
 }
 
-func newSmallintType()Type
-func newIntegerType()Type
-func newBigintType()Type
 func newDecimalType()Type
 func newVarcharType()Type
 func newTimestampType()Type
