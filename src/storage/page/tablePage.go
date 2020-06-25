@@ -1,11 +1,11 @@
 package page
 
 import (
-    "common"
+	"common"
 )
 
 const (
-    deleteMask = (1 << 31)
+	deleteMask = (1 << 31)
 )
 
 /**
@@ -26,10 +26,10 @@ const (
  *
  */
 
- type TablePage interface {
-     Page
-     Init(common.PageID, uint32, common.PageID,)
- }
+type TablePage interface {
+	Page
+	Init(common.PageID, uint32, common.PageID)
+}
 
 /**
 * Initialize the TablePage header.
@@ -38,4 +38,4 @@ const (
 * @param prev_page_id the previous table page ID
 * @param log_manager the log manager in use
 * @param txn the transaction that this page is created in
-*/
+ */

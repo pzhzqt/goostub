@@ -1,87 +1,89 @@
 package types
 
 import (
-    "log"
-    "common"
-    "unsafe"
+	"common"
+	"log"
+	"unsafe"
 )
 
 type BooleanType struct {
-    BaseType
+	BaseType
 }
 
 func newBooleanType() *BooleanType {
-    return &BooleanType {
-        *newBaseType(BOOLEAN),
-    }
+	return &BooleanType{
+		*newBaseType(BOOLEAN),
+	}
 }
 
 func (t *BooleanType) Compare(l *Value, r *Value) (CmpResult, error) {
-    if t.GetTypeID() != BOOLEAN {
-        log.Fatalln("BooleanType member function called from non-boolean type")
-    }
+	if l.GetTypeID() != BOOLEAN {
+		log.Fatalln("BooleanType member function called from non-boolean type")
+	}
 
-    if !l.CheckComparable(r) || l.IsNull() || r.IsNull() {
-        return 0, common.NewErrorf(common.MISMATCH_TYPE,
-            "%s and %s are not comparable", TypeIDToString(l.typeID), TypeIDToString(r.typeID))
-    }
+	if !l.CheckComparable(r) || l.IsNull() || r.IsNull() {
+		return 0, common.NewErrorf(common.MISMATCH_TYPE,
+			"%s and %s are not comparable", TypeIDToString(l.typeID), TypeIDToString(r.typeID))
+	}
 
-    lval := l.CastAs(BOOLEAN).val.(int8)
-    rval := r.CastAs(BOOLEAN).val.(int8)
+	lval := l.val.(int8)
+	rVal, _ := r.CastAs(BOOLEAN)
+	rval := rVal.val.(int8)
 
-    var ret CmpResult
+	var ret CmpResult
 
-    if lval < rval {
-        ret = -1
-    } else if lval > rval {
-        ret = 1
-    } else {
-        ret = 0
-    }
+	if lval < rval {
+		ret = -1
+	} else if lval > rval {
+		ret = 1
+	} else {
+		ret = 0
+	}
 
-    return ret, nil
+	return ret, nil
 }
 
 func (t *BooleanType) IsInlined(v *Value) (bool, error) {
-    return true, nil
+	return true, nil
 }
 
 func (t *BooleanType) ToString(v *Value) (string, error) {
-    if t.GetTypeID() != BOOLEAN {
-        log.Fatalln("BooleanType member function called from non-boolean type")
-    }
+	if t.GetTypeID() != BOOLEAN {
+		log.Fatalln("BooleanType member function called from non-boolean type")
+	}
 
-    if v.val.(int8) == 1 {
-        return "true", nil
-    } else if v.val.(int8) == 0 {
-        return "false", nil
-    }
+	if v.val.(int8) == 1 {
+		return "true", nil
+	} else if v.val.(int8) == 0 {
+		return "false", nil
+	}
 
-    return "boolean_null", nil
+	return "boolean_null", nil
 }
 
 func (t *BooleanType) SerializeTo(v *Value, storage *byte) error {
-    *(*int8)(unsafe.Pointer(storage)) = v.val.(int8)
-    return nil
+	*(*int8)(unsafe.Pointer(storage)) = v.val.(int8)
+	return nil
 }
 
 func (t *BooleanType) DeserializeFrom(storage *byte) (*Value, error) {
-    val := *(*int8)(unsafe.Pointer(storage))
-    return NewValue(BOOLEAN, val), nil
+	val := *(*int8)(unsafe.Pointer(storage))
+	return NewValue(BOOLEAN, val), nil
 }
 
 func (t *BooleanType) CastAs(v *Value, id TypeID) (*Value, error) {
-    switch (id) {
-    case BOOLEAN:
-        return t.Copy(v), nil
-    case VARCHAR:
-        if (v.IsNull()) {
-            return NewValue(VARCHAR, nil, false), nil
-        }
-        return NewValue(VARCHAR, v.ToString()), nil
-    default:
-        break
-    }
-    return nil, common.NewErrorf(common.INVALID,
-        "Boolean is not coearcible to %s", TypeIDToString(id))
+	switch id {
+	case BOOLEAN:
+		return t.Copy(v), nil
+	case VARCHAR:
+		if v.IsNull() {
+			return NewValue(VARCHAR, nil, false), nil
+		}
+		s, _ := t.ToString(v)
+		return NewValue(VARCHAR, s), nil
+	default:
+		break
+	}
+	return nil, common.NewErrorf(common.INVALID,
+		"Boolean is not coearcible to %s", TypeIDToString(id))
 }
