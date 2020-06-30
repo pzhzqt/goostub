@@ -61,6 +61,8 @@ func (v *Value) CheckComparable(other *Value) bool {
 		break
 	case VARCHAR:
 		return true
+	case TIMESTAMP:
+		return other.GetTypeID() == TIMESTAMP
 	default:
 		break
 	}

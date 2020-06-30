@@ -57,7 +57,6 @@ type Type interface {
 }
 
 func newVarcharType() Type
-func newTimestampType() Type
 
 func GetTypeSize(id TypeID) (uint64, error) {
 	switch id {

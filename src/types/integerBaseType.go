@@ -20,16 +20,15 @@ func newIntegerBaseType(id TypeID) *IntegerBaseType {
 // Unfortunately there's no macro in go, otherwise this file could be a lot more DRY
 
 func (t *IntegerBaseType) Min(l, r *Value) (*Value, error) {
-	err := t.operandCheck(l, r)
-	if err != nil {
-		return nil, err
-	}
-
 	if l.IsNull() || r.IsNull() {
 		return l.OperateNull(r)
 	}
 
-	if res, _ := t.Compare(l, r); res < 0 {
+	res, err := t.Compare(l, r)
+	if err != nil {
+		return nil, err
+	}
+	if res < 0 {
 		return l.Copy(), nil
 	}
 
@@ -37,16 +36,15 @@ func (t *IntegerBaseType) Min(l, r *Value) (*Value, error) {
 }
 
 func (t *IntegerBaseType) Max(l, r *Value) (*Value, error) {
-	err := t.operandCheck(l, r)
-	if err != nil {
-		return nil, err
-	}
-
 	if l.IsNull() || r.IsNull() {
 		return l.OperateNull(r)
 	}
 
-	if res, _ := t.Compare(l, r); res > 0 {
+	res, err := t.Compare(l, r)
+	if err != nil {
+		return nil, err
+	}
+	if res > 0 {
 		return l.Copy(), nil
 	}
 

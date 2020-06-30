@@ -18,16 +18,15 @@ func newDecimalType() *DecimalType {
 }
 
 func (t *DecimalType) Min(l, r *Value) (*Value, error) {
-	err := t.operandCheck(l, r)
-	if err != nil {
-		return nil, err
-	}
-
 	if l.IsNull() || r.IsNull() {
 		return l.OperateNull(r)
 	}
 
-	if res, _ := t.Compare(l, r); res < 0 {
+	res, err := t.Compare(l, r)
+	if err != nil {
+		return nil, err
+	}
+	if res < 0 {
 		return l.Copy(), nil
 	}
 
@@ -35,16 +34,15 @@ func (t *DecimalType) Min(l, r *Value) (*Value, error) {
 }
 
 func (t *DecimalType) Max(l, r *Value) (*Value, error) {
-	err := t.operandCheck(l, r)
-	if err != nil {
-		return nil, err
-	}
-
 	if l.IsNull() || r.IsNull() {
 		return l.OperateNull(r)
 	}
 
-	if res, _ := t.Compare(l, r); res > 0 {
+	res, err := t.Compare(l, r)
+	if err != nil {
+		return nil, err
+	}
+	if res > 0 {
 		return l.Copy(), nil
 	}
 
@@ -219,7 +217,7 @@ func (t *DecimalType) ToString(v *Value) (string, error) {
 func (t *DecimalType) SerializeTo(v *Value, storage *byte) error {
 	val, ok := v.val.(float64)
 	if !ok {
-		log.Fatalln("bigint member function called on non-bigint value")
+		log.Fatalln("decimal member function called on non-decimal value")
 	}
 
 	*(*float64)(unsafe.Pointer(storage)) = val
