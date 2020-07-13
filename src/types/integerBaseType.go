@@ -21,7 +21,7 @@ func newIntegerBaseType(id TypeID) *IntegerBaseType {
 
 func (t *IntegerBaseType) Min(l, r *Value) (*Value, error) {
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
 	res, err := t.Compare(l, r)
@@ -37,7 +37,7 @@ func (t *IntegerBaseType) Min(l, r *Value) (*Value, error) {
 
 func (t *IntegerBaseType) Max(l, r *Value) (*Value, error) {
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
 	res, err := t.Compare(l, r)
@@ -62,13 +62,17 @@ func (t *IntegerBaseType) Compare(l *Value, r *Value) (CmpResult, error) {
 			"Null Value is not comparable")
 	}
 
-	if !r.CheckInteger() {
-		// integer type only handles operations between ints
-		return GetInstance(r.typeID).Compare(l, r)
+	if r.GetTypeID() == DECIMAL {
+		// call decimal type comparison
+		return GetInstance(DECIMAL).Compare(l, r)
 	}
 
 	lval := getValAsBIGINT(l)
-	rval := getValAsBIGINT(r)
+	r, err = r.CastAs(BIGINT)
+	if err != nil {
+		return 0, err
+	}
+	rval := r.val.(int64)
 
 	var ret CmpResult
 
@@ -90,12 +94,12 @@ func (t *IntegerBaseType) Add(l *Value, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
-	if !r.CheckInteger() {
-		// integer type only handles operations between ints
-		return GetInstance(r.typeID).Add(l, r)
+	if r.GetTypeID() == DECIMAL {
+		// result will be decimal type
+		return GetInstance(DECIMAL).Add(l, r)
 	}
 
 	id := l.typeID
@@ -104,7 +108,11 @@ func (t *IntegerBaseType) Add(l *Value, r *Value) (*Value, error) {
 	}
 
 	x := getValAsBIGINT(l)
-	y := getValAsBIGINT(r)
+	r, err = r.CastAs(BIGINT)
+	if err != nil {
+		return nil, err
+	}
+	y := r.val.(int64)
 
 	if (x > 0 && y > math.MaxInt64-x) || (x < 0 && y < math.MinInt64-x) {
 		// Overflow 64 bits
@@ -128,12 +136,12 @@ func (t *IntegerBaseType) Subtract(l *Value, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
-	if !r.CheckInteger() {
-		// integer type only handles operations between ints
-		return GetInstance(r.typeID).Add(l, r)
+	if r.GetTypeID() == DECIMAL {
+		// result will be decimal type
+		return GetInstance(DECIMAL).Subtract(l, r)
 	}
 
 	id := l.typeID
@@ -142,7 +150,11 @@ func (t *IntegerBaseType) Subtract(l *Value, r *Value) (*Value, error) {
 	}
 
 	x := getValAsBIGINT(l)
-	y := getValAsBIGINT(r)
+	r, err = r.CastAs(BIGINT)
+	if err != nil {
+		return nil, err
+	}
+	y := r.val.(int64)
 
 	if (x > 0 && y < x-math.MaxInt64) || (x < 0 && y > x-math.MinInt64) {
 		// Overflow 64 bits
@@ -165,12 +177,12 @@ func (t *IntegerBaseType) Multiply(l *Value, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
-	if !r.CheckInteger() {
-		// integer type only handles operations between ints
-		return GetInstance(r.typeID).Add(l, r)
+	if r.GetTypeID() == DECIMAL {
+		// result will be decimal type
+		return GetInstance(DECIMAL).Multiply(l, r)
 	}
 
 	id := l.typeID
@@ -179,7 +191,11 @@ func (t *IntegerBaseType) Multiply(l *Value, r *Value) (*Value, error) {
 	}
 
 	x := getValAsBIGINT(l)
-	y := getValAsBIGINT(r)
+	r, err = r.CastAs(BIGINT)
+	if err != nil {
+		return nil, err
+	}
+	y := r.val.(int64)
 
 	if (x > 0 && (y > math.MaxInt64/x || y < math.MinInt64/x)) || (x < 0 && (y < math.MaxInt64/x || y > math.MinInt64/x)) {
 		// Overflow 64 bits
@@ -202,12 +218,12 @@ func (t *IntegerBaseType) Divide(l *Value, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
-	if !r.CheckInteger() {
-		// integer type only handles operations between ints
-		return GetInstance(r.typeID).Add(l, r)
+	if r.GetTypeID() == DECIMAL {
+		// result will be decimal type
+		return GetInstance(DECIMAL).Divide(l, r)
 	}
 
 	id := l.typeID
@@ -216,7 +232,11 @@ func (t *IntegerBaseType) Divide(l *Value, r *Value) (*Value, error) {
 	}
 
 	x := getValAsBIGINT(l)
-	y := getValAsBIGINT(r)
+	r, err = r.CastAs(BIGINT)
+	if err != nil {
+		return nil, err
+	}
+	y := r.val.(int64)
 
 	if y == 0 {
 		return nil, common.NewError(common.DIVIDE_BY_ZERO,
@@ -233,12 +253,12 @@ func (t *IntegerBaseType) Modulo(l *Value, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
-	if !r.CheckInteger() {
-		// integer type only handles operations between ints
-		return GetInstance(r.typeID).Add(l, r)
+	if r.GetTypeID() == DECIMAL {
+		// result will be decimal type
+		return GetInstance(DECIMAL).Modulo(l, r)
 	}
 
 	id := l.typeID
@@ -247,7 +267,11 @@ func (t *IntegerBaseType) Modulo(l *Value, r *Value) (*Value, error) {
 	}
 
 	x := getValAsBIGINT(l)
-	y := getValAsBIGINT(r)
+	r, err = r.CastAs(BIGINT)
+	if err != nil {
+		return nil, err
+	}
+	y := r.val.(int64)
 
 	if y == 0 {
 		return nil, common.NewError(common.DIVIDE_BY_ZERO,

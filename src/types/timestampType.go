@@ -1,10 +1,11 @@
 package types
 
 import (
+	"bytes"
 	"common"
+	"encoding/binary"
 	"log"
 	"time"
-	"unsafe"
 )
 
 type TimestampType struct {
@@ -88,18 +89,22 @@ func (t *TimestampType) ToString(v *Value) (string, error) {
 	return time.Unix(0, int64(v.val.(uint64))).String(), nil
 }
 
-func (t *TimestampType) SerializeTo(v *Value, storage *byte) error {
+func (t *TimestampType) SerializeTo(v *Value, storage *bytes.Buffer) error {
 	val, ok := v.val.(uint64)
 	if !ok {
-		log.Fatalln("timestamp member function called on non-timestamp value")
+		log.Fatalln("bigint member function called on non-bigint value")
 	}
 
-	*(*uint64)(unsafe.Pointer(storage)) = val
-	return nil
+	return binary.Write(storage, binary.LittleEndian, val)
 }
 
-func (t *TimestampType) DeserializeFrom(storage *byte) (*Value, error) {
-	val := *(*uint64)(unsafe.Pointer(storage))
+func (t *TimestampType) DeserializeFrom(storage *bytes.Buffer) (*Value, error) {
+	var val uint64
+	err := binary.Read(storage, binary.LittleEndian, &val)
+	if err != nil {
+		return nil, err
+	}
+
 	return NewValue(t.id, val), nil
 }
 

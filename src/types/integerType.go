@@ -1,9 +1,10 @@
 package types
 
 import (
+	"bytes"
+	"encoding/binary"
 	"log"
 	"strconv"
-	"unsafe"
 )
 
 type IntegerType struct {
@@ -29,17 +30,21 @@ func (t *IntegerType) ToString(v *Value) (string, error) {
 	return strconv.FormatInt(int64(val), 10), nil
 }
 
-func (t *IntegerType) SerializeTo(v *Value, storage *byte) error {
+func (t *IntegerType) SerializeTo(v *Value, storage *bytes.Buffer) error {
 	val, ok := v.val.(int32)
 	if !ok {
-		log.Fatalln("integer member function called on non-integer value")
+		log.Fatalln("bigint member function called on non-bigint value")
 	}
 
-	*(*int32)(unsafe.Pointer(storage)) = val
-	return nil
+	return binary.Write(storage, binary.LittleEndian, val)
 }
 
-func (t *IntegerType) DeserializeFrom(storage *byte) (*Value, error) {
-	val := *(*int32)(unsafe.Pointer(storage))
+func (t *IntegerType) DeserializeFrom(storage *bytes.Buffer) (*Value, error) {
+	var val int32
+	err := binary.Read(storage, binary.LittleEndian, &val)
+	if err != nil {
+		return nil, err
+	}
+
 	return NewValue(t.id, val), nil
 }

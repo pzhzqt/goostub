@@ -1,9 +1,10 @@
 package types
 
 import (
+	"bytes"
+	"encoding/binary"
 	"log"
 	"strconv"
-	"unsafe"
 )
 
 type SmallintType struct {
@@ -29,17 +30,21 @@ func (t *SmallintType) ToString(v *Value) (string, error) {
 	return strconv.FormatInt(int64(val), 10), nil
 }
 
-func (t *SmallintType) SerializeTo(v *Value, storage *byte) error {
+func (t *SmallintType) SerializeTo(v *Value, storage *bytes.Buffer) error {
 	val, ok := v.val.(int16)
 	if !ok {
-		log.Fatalln("smallint member function called on non-smallint value")
+		log.Fatalln("bigint member function called on non-bigint value")
 	}
 
-	*(*int16)(unsafe.Pointer(storage)) = val
-	return nil
+	return binary.Write(storage, binary.LittleEndian, val)
 }
 
-func (t *SmallintType) DeserializeFrom(storage *byte) (*Value, error) {
-	val := *(*int16)(unsafe.Pointer(storage))
+func (t *SmallintType) DeserializeFrom(storage *bytes.Buffer) (*Value, error) {
+	var val int16
+	err := binary.Read(storage, binary.LittleEndian, &val)
+	if err != nil {
+		return nil, err
+	}
+
 	return NewValue(t.id, val), nil
 }

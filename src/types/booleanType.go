@@ -1,9 +1,10 @@
 package types
 
 import (
+	"bytes"
 	"common"
+	"encoding/binary"
 	"log"
-	"unsafe"
 )
 
 type BooleanType struct {
@@ -27,7 +28,10 @@ func (t *BooleanType) Compare(l *Value, r *Value) (CmpResult, error) {
 	}
 
 	lval := l.val.(int8)
-	rVal, _ := r.CastAs(BOOLEAN)
+	rVal, err := r.CastAs(BOOLEAN)
+	if err != nil {
+		return 0, err
+	}
 	rval := rVal.val.(int8)
 
 	var ret CmpResult
@@ -61,13 +65,21 @@ func (t *BooleanType) ToString(v *Value) (string, error) {
 	return "boolean_null", nil
 }
 
-func (t *BooleanType) SerializeTo(v *Value, storage *byte) error {
-	*(*int8)(unsafe.Pointer(storage)) = v.val.(int8)
-	return nil
+func (t *BooleanType) SerializeTo(v *Value, storage *bytes.Buffer) error {
+	val, ok := v.val.(int8)
+	if !ok {
+		log.Fatalln("boolean member function called on non-boolean value")
+	}
+
+	return binary.Write(storage, binary.LittleEndian, val)
 }
 
-func (t *BooleanType) DeserializeFrom(storage *byte) (*Value, error) {
-	val := *(*int8)(unsafe.Pointer(storage))
+func (t *BooleanType) DeserializeFrom(storage *bytes.Buffer) (*Value, error) {
+	var val int8
+	err := binary.Read(storage, binary.LittleEndian, &val)
+	if err != nil {
+		return nil, err
+	}
 	return NewValue(BOOLEAN, val), nil
 }
 

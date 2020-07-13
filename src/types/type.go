@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"common"
 	"errors"
 	"github.com/go-kit/kit/log/level"
@@ -47,16 +48,14 @@ type Type interface {
 	IsInlined(*Value) (bool, error)
 
 	ToString(*Value) (string, error)
-	SerializeTo(*Value, *byte) error
-	DeserializeFrom(*byte) (*Value, error)
+	SerializeTo(*Value, *bytes.Buffer) error
+	DeserializeFrom(*bytes.Buffer) (*Value, error)
 	Copy(*Value) *Value
 	CastAs(*Value, TypeID) (*Value, error)
 	// raw variable length data
 	GetData(*Value) ([]byte, error)
 	GetLength(*Value) (uint32, error)
 }
-
-func newVarcharType() Type
 
 func GetTypeSize(id TypeID) (uint64, error) {
 	switch id {

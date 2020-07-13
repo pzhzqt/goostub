@@ -88,6 +88,7 @@ func (v *Value) CastAs(id TypeID) (*Value, error) {
 
 // Comparison Method
 
+// a.CompareTo(b) is not symetrical to b.CompareTo(a)
 func (v *Value) CompareTo(other *Value) (CmpResult, error) {
 	return GetInstance(v.typeID).Compare(v, other)
 }

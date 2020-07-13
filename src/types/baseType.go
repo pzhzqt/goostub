@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"common"
 	"log"
 	"math"
@@ -181,12 +182,12 @@ func (t *BaseType) ToString(v *Value) (string, error) {
 		"ToString not implemented")
 }
 
-func (t *BaseType) SerializeTo(v *Value, storage *byte) error {
+func (t *BaseType) SerializeTo(v *Value, storage *bytes.Buffer) error {
 	return common.NewError(common.NOT_IMPLEMENTED,
 		"SerializeTo not implemented")
 }
 
-func (t *BaseType) DeserializeFrom(storage *byte) (*Value, error) {
+func (t *BaseType) DeserializeFrom(storage *bytes.Buffer) (*Value, error) {
 	return nil, common.NewError(common.NOT_IMPLEMENTED,
 		"DeserializeFrom not implemented")
 }

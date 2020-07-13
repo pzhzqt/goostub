@@ -1,10 +1,11 @@
 package types
 
 import (
+	"bytes"
 	"common"
+	"encoding/binary"
 	"log"
 	"strconv"
-	"unsafe"
 )
 
 type DecimalType struct {
@@ -19,7 +20,7 @@ func newDecimalType() *DecimalType {
 
 func (t *DecimalType) Min(l, r *Value) (*Value, error) {
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
 	res, err := t.Compare(l, r)
@@ -35,7 +36,7 @@ func (t *DecimalType) Min(l, r *Value) (*Value, error) {
 
 func (t *DecimalType) Max(l, r *Value) (*Value, error) {
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
 	res, err := t.Compare(l, r)
@@ -60,8 +61,16 @@ func (t *DecimalType) Compare(l, r *Value) (CmpResult, error) {
 			"Null Value is not comparable")
 	}
 
-	lval := getValAsDecimal(l)
-	rval := getValAsDecimal(r)
+	l, err = l.CastAs(DECIMAL)
+	if err != nil {
+		return 0, err
+	}
+	lval := l.val.(float64)
+	r, err = r.CastAs(DECIMAL)
+	if err != nil {
+		return 0, err
+	}
+	rval := r.val.(float64)
 
 	var ret CmpResult
 
@@ -83,11 +92,22 @@ func (t *DecimalType) Add(l, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
+	l, err = l.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	lval := l.val.(float64)
+	r, err = r.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	rval := r.val.(float64)
+
 	// prolly should check overflow but since double overflow is highly unlikely, we might as well not add overhead
-	return NewValue(DECIMAL, getValAsDecimal(l)+getValAsDecimal(r)), nil
+	return NewValue(DECIMAL, lval+rval), nil
 }
 
 func (t *DecimalType) Subtract(l, r *Value) (*Value, error) {
@@ -97,11 +117,22 @@ func (t *DecimalType) Subtract(l, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
+	l, err = l.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	lval := l.val.(float64)
+	r, err = r.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	rval := r.val.(float64)
+
 	// prolly should check overflow but since double overflow is highly unlikely, we might as well not add overhead
-	return NewValue(DECIMAL, getValAsDecimal(l)-getValAsDecimal(r)), nil
+	return NewValue(DECIMAL, lval-rval), nil
 }
 
 func (t *DecimalType) Multiply(l, r *Value) (*Value, error) {
@@ -111,11 +142,22 @@ func (t *DecimalType) Multiply(l, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
+	l, err = l.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	lval := l.val.(float64)
+	r, err = r.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	rval := r.val.(float64)
+
 	// prolly should check overflow but since double overflow is highly unlikely, we might as well not add overhead
-	return NewValue(DECIMAL, getValAsDecimal(l)*getValAsDecimal(r)), nil
+	return NewValue(DECIMAL, lval*rval), nil
 }
 
 func (t *DecimalType) Divide(l, r *Value) (*Value, error) {
@@ -125,7 +167,7 @@ func (t *DecimalType) Divide(l, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
 	if z, err := r.IsZero(); z || err != nil {
@@ -133,8 +175,19 @@ func (t *DecimalType) Divide(l, r *Value) (*Value, error) {
 			"Divide by zero")
 	}
 
+	l, err = l.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	lval := l.val.(float64)
+	r, err = r.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	rval := r.val.(float64)
+
 	// prolly should check overflow but since double overflow is highly unlikely, we might as well not add overhead
-	return NewValue(DECIMAL, getValAsDecimal(l)/getValAsDecimal(r)), nil
+	return NewValue(DECIMAL, lval/rval), nil
 }
 
 func (t *DecimalType) Modulo(l, r *Value) (*Value, error) {
@@ -144,7 +197,7 @@ func (t *DecimalType) Modulo(l, r *Value) (*Value, error) {
 	}
 
 	if l.IsNull() || r.IsNull() {
-		return l.OperateNull(r)
+		return t.OperateNull(l, r)
 	}
 
 	if z, err := r.IsZero(); z || err != nil {
@@ -152,8 +205,19 @@ func (t *DecimalType) Modulo(l, r *Value) (*Value, error) {
 			"Divide by zero")
 	}
 
+	l, err = l.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	lval := l.val.(float64)
+	r, err = r.CastAs(DECIMAL)
+	if err != nil {
+		return nil, err
+	}
+	rval := r.val.(float64)
+
 	// prolly should check overflow but since double overflow is highly unlikely, we might as well not add overhead
-	return NewValue(DECIMAL, valMod(getValAsDecimal(l), getValAsDecimal(r))), nil
+	return NewValue(DECIMAL, valMod(lval, rval)), nil
 }
 
 func (t *DecimalType) CastAs(v *Value, id TypeID) (*Value, error) {
@@ -214,18 +278,22 @@ func (t *DecimalType) ToString(v *Value) (string, error) {
 	return strconv.FormatFloat(val, 'G', -1, 64), nil
 }
 
-func (t *DecimalType) SerializeTo(v *Value, storage *byte) error {
+func (t *DecimalType) SerializeTo(v *Value, storage *bytes.Buffer) error {
 	val, ok := v.val.(float64)
 	if !ok {
 		log.Fatalln("decimal member function called on non-decimal value")
 	}
 
-	*(*float64)(unsafe.Pointer(storage)) = val
-	return nil
+	return binary.Write(storage, binary.LittleEndian, val)
 }
 
-func (t *DecimalType) DeserializeFrom(storage *byte) (*Value, error) {
-	val := *(*float64)(unsafe.Pointer(storage))
+func (t *DecimalType) DeserializeFrom(storage *bytes.Buffer) (*Value, error) {
+	var val float64
+	err := binary.Read(storage, binary.LittleEndian, &val)
+	if err != nil {
+		return nil, err
+	}
+
 	return NewValue(t.id, val), nil
 }
 
@@ -242,28 +310,4 @@ func (t *DecimalType) operandCheck(l, r *Value) error {
 	}
 
 	return nil
-}
-
-func getValAsDecimal(v *Value) float64 {
-	if !v.IsNumeric() {
-		log.Fatalln("getValAsDecimal should only be called on integer value")
-	}
-
-	switch v.GetTypeID() {
-	case TINYINT:
-		return float64(v.val.(int8))
-	case SMALLINT:
-		return float64(v.val.(int16))
-	case INTEGER:
-		return float64(v.val.(int32))
-	case BIGINT:
-		return float64(v.val.(int64))
-	case DECIMAL:
-		return v.val.(float64)
-	default:
-		break
-	}
-
-	log.Fatalln("this shouldn't print out")
-	return GOOSTUB_DECIMAL_NULL
 }
