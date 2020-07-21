@@ -41,11 +41,9 @@ const (
 	GOOSTUB_BOOLEAN_NULL   int8    = math.MinInt8
 
 	// Max length
-	GOOSTUB_VARCHAR_MAX_LEN uint32 = math.MaxUint32
+	GOOSTUB_VARCHAR_MAX_LEN int32 = math.MaxInt32
 	// TEXT = VARCHAR(GOOSTUB_TEXT_MAX_LEN)
-	GOOSTUB_TEXT_MAX_LEN uint32 = 1000000000
-	// VARCHAR objects WITH NULL length are NULL
-	OBJECTLENGTH_NULL int = -1
+	GOOSTUB_TEXT_MAX_LEN int32 = 1000000000
 )
 
 func GetNull(id TypeID) interface{} {

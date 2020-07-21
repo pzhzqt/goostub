@@ -11,7 +11,7 @@ func TestInt8(t *testing.T) {
 		t.Error("Nil value")
 	}
 	fmt.Println("id: ", val.typeID)
-	fmt.Println("size: ", val.size)
+	fmt.Println("size: ", val.isNull)
 	fmt.Println("manage_data: ", val.manageData)
 	fmt.Println("val: ", val.val)
 }

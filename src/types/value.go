@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"common"
 	"github.com/go-kit/kit/log/level"
 	"log"
@@ -9,8 +10,8 @@ import (
 
 type Value struct {
 	// use interface{} for union type
-	val  interface{}
-	size uint32
+	val    interface{}
+	isNull bool
 
 	// only matters if it's a varchar type
 	// since val stores only pointer, this indicates whether
@@ -74,7 +75,7 @@ func (v *Value) GetTypeID() TypeID {
 	return v.typeID
 }
 
-func (v *Value) GetLength() (uint32, error) {
+func (v *Value) GetLength() int32 {
 	return GetInstance(v.typeID).GetLength(v)
 }
 
@@ -136,14 +137,14 @@ func (v *Value) IsZero() (bool, error) {
 }
 
 func (v *Value) IsNull() bool {
-	return v.size == GOOSTUB_VALUE_NULL
+	return v.isNull
 }
 
-func (v *Value) SerializeTo(storage *byte) {
-	GetInstance(v.typeID).SerializeTo(v, storage)
+func (v *Value) SerializeTo(storage *bytes.Buffer) error {
+	return GetInstance(v.typeID).SerializeTo(v, storage)
 }
 
-func (v *Value) DeserializeFrom(storage *byte, id TypeID) (*Value, error) {
+func (v *Value) DeserializeFrom(storage *bytes.Buffer, id TypeID) (*Value, error) {
 	return GetInstance(v.typeID).DeserializeFrom(storage)
 }
 
@@ -157,6 +158,15 @@ func (v *Value) Copy() *Value {
 
 func (v *Value) IsNumeric() bool {
 	return v.typeID >= TINYINT && v.typeID <= DECIMAL
+}
+
+// stringer for go
+func (v *Value) String() string {
+	s, err := v.ToString()
+	if err != nil {
+		return err.Error()
+	}
+	return s
 }
 
 /*****************************/
@@ -210,7 +220,7 @@ func NewInvalidValue() *Value {
 func CopyValue(other *Value) *Value {
 	value := &Value{
 		typeID:     other.typeID,
-		size:       other.size,
+		isNull:     other.isNull,
 		manageData: other.manageData,
 		val:        other.val,
 	}
@@ -238,7 +248,7 @@ func newNullValue(id TypeID) *Value {
 	return &Value{
 		typeID:     id,
 		val:        GetNull(id),
-		size:       GOOSTUB_VALUE_NULL,
+		isNull:     true,
 		manageData: false,
 	}
 }
@@ -324,7 +334,7 @@ func newValueFromInt64(id TypeID, i int64) *Value {
 	}
 
 	if value.val != nullval {
-		value.size = 0
+		value.isNull = false
 	}
 
 	return value
@@ -348,7 +358,7 @@ func newValueFromUint64(id TypeID, i uint64) *Value {
 	}
 
 	if value.val != nullval {
-		value.size = 0
+		value.isNull = false
 	}
 
 	return value
@@ -368,7 +378,7 @@ func newValueFromFloat(id TypeID, d float64) *Value {
 	}
 
 	if value.val != nullval {
-		value.size = 0
+		value.isNull = false
 	}
 
 	return value
@@ -385,7 +395,7 @@ func newVarlen(id TypeID, data []byte, manageData bool) *Value {
 
 		value.manageData = manageData
 		l := len(data)
-		value.size = uint32(l)
+		value.isNull = false
 
 		if manageData {
 			value.val = make([]byte, l)

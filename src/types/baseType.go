@@ -207,10 +207,9 @@ func (t *BaseType) GetData(v *Value) ([]byte, error) {
 		"GetData not implemented")
 }
 
-// length of variable-length data
-func (t *BaseType) GetLength(v *Value) (uint32, error) {
-	return 0, common.NewError(common.NOT_IMPLEMENTED,
-		"GetLength not implemented")
+// length of variable-length data, -1 indicates error
+func (t *BaseType) GetLength(v *Value) int32 {
+	return -1
 }
 
 func newBaseType(tid TypeID) *BaseType {

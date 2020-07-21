@@ -54,7 +54,7 @@ type Type interface {
 	CastAs(*Value, TypeID) (*Value, error)
 	// raw variable length data
 	GetData(*Value) ([]byte, error)
-	GetLength(*Value) (uint32, error)
+	GetLength(*Value) int32
 }
 
 func GetTypeSize(id TypeID) (uint64, error) {
