@@ -47,7 +47,7 @@ func (r *RID) Set(pid PageID, snum uint32) {
 	r.slotNum = snum
 }
 
-func (r *RID) ToString() string {
+func (r RID) String() string {
 	return fmt.Sprintln("PageID: ", r.pageID, " SlotNum: ", r.slotNum)
 }
 

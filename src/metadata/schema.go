@@ -1,4 +1,4 @@
-package catalog
+package metadata
 
 import (
 	"fmt"
@@ -53,16 +53,16 @@ func CopySchema(from *Schema, attrs []int) *Schema {
 	return NewSchema(cols)
 }
 
-func (s Schema) GetColumns() []Column {
+func (s *Schema) GetColumns() []Column {
 	return s.columns
 }
 
-func (s Schema) GetColumn(colIdx int) *Column {
+func (s *Schema) GetColumn(colIdx int) *Column {
 	return &s.columns[colIdx]
 }
 
 // -1 indicates error
-func (s Schema) GetColIdx(colName string) int {
+func (s *Schema) GetColIdx(colName string) int {
 	for i := 0; i < len(s.columns); i++ {
 		if s.columns[i].GetName() == colName {
 			return i
@@ -72,23 +72,23 @@ func (s Schema) GetColIdx(colName string) int {
 	return -1
 }
 
-func (s Schema) GetUninlinedColumns() []int {
+func (s *Schema) GetUninlinedColumns() []int {
 	return s.uninlinedColumns
 }
 
-func (s Schema) GetColumnCount() int {
+func (s *Schema) GetColumnCount() int {
 	return len(s.columns)
 }
 
-func (s Schema) GetUninlinedColumnCount() int {
+func (s *Schema) GetUninlinedColumnCount() int {
 	return len(s.uninlinedColumns)
 }
 
-func (s Schema) GetLength() uint32 {
+func (s *Schema) GetLength() uint32 {
 	return s.length
 }
 
-func (s Schema) IsInlined() bool {
+func (s *Schema) IsInlined() bool {
 	return s.tupleIsInlined
 }
 

@@ -161,7 +161,7 @@ func (v *Value) IsNumeric() bool {
 }
 
 // stringer for go
-func (v *Value) String() string {
+func (v Value) String() string {
 	s, err := v.ToString()
 	if err != nil {
 		return err.Error()

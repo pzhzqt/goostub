@@ -1,4 +1,4 @@
-package catalog
+package metadata
 
 import (
 	"execution/expressions"
@@ -43,30 +43,30 @@ func NewVarcharColumn(colName string, id types.TypeID, length uint32, expr *expr
 	}
 }
 
-func (c Column) GetName() string {
+func (c *Column) GetName() string {
 	return c.columnName
 }
 
-func (c Column) GetLength() uint32 {
+func (c *Column) GetLength() uint32 {
 	if c.IsInlined() {
 		return c.fixedLength
 	}
 	return c.variableLength
 }
 
-func (c Column) GetFixedLength() uint32 {
+func (c *Column) GetFixedLength() uint32 {
 	return c.fixedLength
 }
 
-func (c Column) GetVariableLength() uint32 {
+func (c *Column) GetVariableLength() uint32 {
 	return c.variableLength
 }
 
-func (c Column) GetOffset() uint32 {
+func (c *Column) GetOffset() uint32 {
 	return c.columnOffset
 }
 
-func (c Column) IsInlined() bool {
+func (c *Column) IsInlined() bool {
 	return c.columnType != types.VARCHAR
 }
 
@@ -82,7 +82,7 @@ func (c Column) String() string {
 	return b.String()
 }
 
-func (c Column) GetExpr() *expressions.AbstractExpression {
+func (c *Column) GetExpr() *expressions.AbstractExpression {
 	return c.expr
 }
 
