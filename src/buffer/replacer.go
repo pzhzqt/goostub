@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	"common"
+	"goostub/common"
 )
 
 type Replacer interface {

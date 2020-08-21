@@ -1,10 +1,10 @@
 package table
 
 import (
-	"common"
+	"goostub/common"
+	"goostub/metadata"
+	"goostub/types"
 	"log"
-	"metadata"
-	"types"
 )
 
 type Tuple struct {

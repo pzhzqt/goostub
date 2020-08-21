@@ -1,8 +1,8 @@
 package types
 
 import (
-	"common"
 	"github.com/go-kit/kit/log/level"
+	"goostub/common"
 	"log"
 	"math"
 )

@@ -2,8 +2,8 @@ package types
 
 import (
 	"bytes"
-	"common"
 	"encoding/binary"
+	"goostub/common"
 	"log"
 )
 

@@ -2,9 +2,9 @@ package types
 
 import (
 	"bytes"
-	"common"
 	"errors"
 	"github.com/go-kit/kit/log/level"
+	"goostub/common"
 )
 
 type TypeID int

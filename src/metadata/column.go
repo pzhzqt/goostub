@@ -1,11 +1,11 @@
 package metadata
 
 import (
-	"execution/expressions"
 	"fmt"
+	"goostub/execution/expressions"
+	"goostub/types"
 	"log"
 	"strings"
-	"types"
 )
 
 type Column struct {

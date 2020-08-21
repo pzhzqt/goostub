@@ -1,7 +1,7 @@
 package page
 
 import (
-	"common"
+	"goostub/common"
 	"unsafe"
 )
 

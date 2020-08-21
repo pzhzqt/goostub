@@ -1,7 +1,7 @@
 package catalog
 
 import (
-	"buffer"
-	"storage/index"
-	"storage/table"
+	"goostub/buffer"
+	"goostub/storage/index"
+	"goostub/storage/table"
 )

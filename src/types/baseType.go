@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"common"
+	"goostub/common"
 	"log"
 	"math"
 )

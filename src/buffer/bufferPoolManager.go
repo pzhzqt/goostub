@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	"storage/page"
+	"goostub/storage/page"
 )
 
 type CallbackType int
