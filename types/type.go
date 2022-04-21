@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -29,6 +29,12 @@ const (
 // The original comparison in BusTub is super WET, and thus I reduced it to a simple Compare and CompareTo function
 // -1 => left < right, 0 => left == right, 1 => left > right
 type CmpResult int
+
+const (
+	CmpLess    CmpResult = -1
+	CmpEqual   CmpResult = 0
+	CmpGreater CmpResult = 1
+)
 
 type Type interface {
 	IsCoercableFrom(TypeID) bool
@@ -65,6 +71,7 @@ type Type interface {
 func GetTypeSize(id TypeID) (uint64, error) {
 	switch id {
 	case BOOLEAN:
+		fallthrough
 	case TINYINT:
 		return 1, nil
 	case SMALLINT:
@@ -72,13 +79,13 @@ func GetTypeSize(id TypeID) (uint64, error) {
 	case INTEGER:
 		return 4, nil
 	case BIGINT:
+		fallthrough
 	case DECIMAL:
+		fallthrough
 	case TIMESTAMP:
 		return 8, nil
 	case VARCHAR:
 		return 0, nil
-	default:
-		break
 	}
 	return 0, errors.New("Unknown Type")
 }
@@ -103,8 +110,6 @@ func TypeIDToString(id TypeID) string {
 		return "TIMESTAMP"
 	case VARCHAR:
 		return "VARCHAR"
-	default:
-		break
 	}
 	return "INVALID"
 }
@@ -127,8 +132,6 @@ func GetMinValue(id TypeID) *Value {
 		return NewValue(id, 0)
 	case VARCHAR:
 		return NewValue(id, ([]byte)(nil))
-	default:
-		break
 	}
 
 	level.Error(common.Logger).Log("Can't get max value")
@@ -153,8 +156,6 @@ func GetMaxValue(id TypeID) *Value {
 		return NewValue(id, GOOSTUB_TIMESTAMP_MAX)
 	case VARCHAR:
 		return NewValue(id, ([]byte)(nil), false)
-	default:
-		break
 	}
 
 	level.Error(common.Logger).Log("Can't get max value")

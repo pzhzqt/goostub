@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"github.com/go-kit/kit/log/level"
 	"goostub/common"
-	"log"
 	"math"
 )
 
@@ -32,12 +31,13 @@ type Value struct {
 func (v *Value) CheckInteger() bool {
 	switch v.GetTypeID() {
 	case TINYINT:
+		fallthrough
 	case SMALLINT:
+		fallthrough
 	case INTEGER:
+		fallthrough
 	case BIGINT:
 		return true
-	default:
-		break
 	}
 
 	return false
@@ -49,28 +49,32 @@ func (v *Value) CheckComparable(other *Value) bool {
 		id := other.GetTypeID()
 		return id == BOOLEAN || id == VARCHAR
 	case TINYINT:
+		fallthrough
 	case SMALLINT:
+		fallthrough
 	case INTEGER:
+		fallthrough
 	case BIGINT:
+		fallthrough
 	case DECIMAL:
 		switch other.GetTypeID() {
 		case TINYINT:
+			fallthrough
 		case SMALLINT:
+			fallthrough
 		case INTEGER:
+			fallthrough
 		case BIGINT:
+			fallthrough
 		case DECIMAL:
+			fallthrough
 		case VARCHAR:
 			return true
-		default:
-			break
 		}
-		break
 	case VARCHAR:
 		return true
 	case TIMESTAMP:
 		return other.GetTypeID() == TIMESTAMP
-	default:
-		break
 	}
 
 	return false
@@ -80,8 +84,8 @@ func (v *Value) GetTypeID() TypeID {
 	return v.typeID
 }
 
-func (v *Value) GetLength() int32 {
-	return GetInstance(v.typeID).GetLength(v)
+func (v *Value) GetLength() uint32 {
+	return uint32(GetInstance(v.typeID).GetLength(v))
 }
 
 func (v *Value) GetData() ([]byte, error) {
@@ -189,10 +193,11 @@ func NewValue(id TypeID, data ...interface{}) *Value {
 		case int16:
 			return newValueFromInt16(id, data[0].(int16))
 		case int32:
-		case int:
 			return newValueFromInt32(id, data[0].(int32))
 		case int64:
 			return newValueFromInt64(id, data[0].(int64))
+		case int:
+			return newValueFromInt64(id, int64(data[0].(int)))
 		case uint64:
 			return newValueFromUint64(id, data[0].(uint64))
 		case float32:
@@ -203,8 +208,6 @@ func NewValue(id TypeID, data ...interface{}) *Value {
 			return newVarlen(id, data[0].([]byte), true)
 		case string:
 			return newVarlen(id, ([]byte)(data[0].(string)), true)
-		default:
-			break
 		}
 	} else if len(data) == 2 {
 		slice, sliceOk := data[0].([]byte)
@@ -214,7 +217,7 @@ func NewValue(id TypeID, data ...interface{}) *Value {
 		}
 	}
 
-	log.Fatalln("Wrong input format")
+	level.Error(common.Logger).Log("Wrong input format")
 	return nil
 }
 
@@ -261,13 +264,15 @@ func newNullValue(id TypeID) *Value {
 func newValueFromInt8(id TypeID, i int8) *Value {
 	switch id {
 	case BOOLEAN:
+		fallthrough
 	case TINYINT:
+		fallthrough
 	case SMALLINT:
+		fallthrough
 	case INTEGER:
+		fallthrough
 	case BIGINT:
 		return newValueFromInt64(id, int64(i))
-	default:
-		break
 	}
 	level.Error(common.Logger).Log("Invalid Type for 1-byte Value constructor")
 	return nil
@@ -276,14 +281,17 @@ func newValueFromInt8(id TypeID, i int8) *Value {
 func newValueFromInt16(id TypeID, i int16) *Value {
 	switch id {
 	case BOOLEAN:
+		fallthrough
 	case TINYINT:
+		fallthrough
 	case SMALLINT:
+		fallthrough
 	case INTEGER:
+		fallthrough
 	case BIGINT:
+		fallthrough
 	case TIMESTAMP:
 		return newValueFromInt64(id, int64(i))
-	default:
-		break
 	}
 	level.Error(common.Logger).Log("Invalid Type for 2-byte Value constructor")
 	return nil
@@ -292,14 +300,17 @@ func newValueFromInt16(id TypeID, i int16) *Value {
 func newValueFromInt32(id TypeID, i int32) *Value {
 	switch id {
 	case BOOLEAN:
+		fallthrough
 	case TINYINT:
+		fallthrough
 	case SMALLINT:
+		fallthrough
 	case INTEGER:
+		fallthrough
 	case BIGINT:
+		fallthrough
 	case TIMESTAMP:
 		return newValueFromInt64(id, int64(i))
-	default:
-		break
 	}
 	level.Error(common.Logger).Log("Invalid Type for 4-byte Value constructor")
 	return nil
@@ -312,27 +323,21 @@ func newValueFromInt64(id TypeID, i int64) *Value {
 	case BOOLEAN:
 		value.val = int8(i)
 		nullval = GOOSTUB_BOOLEAN_NULL
-		break
 	case TINYINT:
 		value.val = int8(i)
 		nullval = GOOSTUB_INT8_NULL
-		break
 	case SMALLINT:
 		value.val = int16(i)
 		nullval = GOOSTUB_INT16_NULL
-		break
 	case INTEGER:
 		value.val = int32(i)
 		nullval = GOOSTUB_INT32_NULL
-		break
 	case BIGINT:
 		value.val = int64(i)
 		nullval = GOOSTUB_INT64_NULL
-		break
 	case TIMESTAMP:
 		value.val = uint64(i)
 		nullval = GOOSTUB_TIMESTAMP_NULL
-		break
 	default:
 		level.Error(common.Logger).Log("Invalid Type for 8-byte Value constructor")
 		return nil
@@ -352,11 +357,9 @@ func newValueFromUint64(id TypeID, i uint64) *Value {
 	case BIGINT:
 		value.val = int64(i)
 		nullval = GOOSTUB_INT64_NULL
-		break
 	case TIMESTAMP:
 		value.val = uint64(i)
 		nullval = GOOSTUB_TIMESTAMP_NULL
-		break
 	default:
 		level.Error(common.Logger).Log("Invalid Type for 8-byte Value constructor")
 		return nil
@@ -376,7 +379,6 @@ func newValueFromFloat(id TypeID, d float64) *Value {
 	case DECIMAL:
 		value.val = d
 		nullval = GOOSTUB_DECIMAL_NULL
-		break
 	default:
 		level.Error(common.Logger).Log("Invalid Type for float Value constructor")
 		return nil
@@ -391,6 +393,7 @@ func newValueFromFloat(id TypeID, d float64) *Value {
 
 func newVarlen(id TypeID, data []byte, manageData bool) *Value {
 	value := newNullValue(id)
+	// switch reserves possibility to add more varlen data type in the future
 	switch id {
 	case VARCHAR:
 		if data == nil {

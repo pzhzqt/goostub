@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -98,8 +98,6 @@ func (t *BooleanType) CastAs(v *Value, id TypeID) (*Value, error) {
 		}
 		s, _ := t.ToString(v)
 		return NewValue(VARCHAR, s), nil
-	default:
-		break
 	}
 	return nil, common.NewErrorf(common.INVALID,
 		"Boolean is not coearcible to %s", TypeIDToString(id))

@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -12,31 +12,31 @@ import (
 	"strconv"
 )
 
-type BigintType struct {
+type IntegerType struct {
 	IntegerBaseType
 }
 
-func newBigintType() *BigintType {
-	return &BigintType{
-		*newIntegerBaseType(TINYINT),
+func newIntegerType() *IntegerType {
+	return &IntegerType{
+		*newIntegerBaseType(INTEGER),
 	}
 }
 
-func (t *BigintType) ToString(v *Value) (string, error) {
+func (t *IntegerType) ToString(v *Value) (string, error) {
 	if v.IsNull() {
-		return "bigint_null", nil
+		return "integer_null", nil
 	}
 
-	val, ok := v.val.(int64)
+	val, ok := v.val.(int32)
 	if !ok {
-		log.Fatalln("bigint member function called on non-bigint value")
+		log.Fatalln("integer member function called on non-integer value")
 	}
 
 	return strconv.FormatInt(int64(val), 10), nil
 }
 
-func (t *BigintType) SerializeTo(v *Value, storage *bytes.Buffer) error {
-	val, ok := v.val.(int64)
+func (t *IntegerType) SerializeTo(v *Value, storage *bytes.Buffer) error {
+	val, ok := v.val.(int32)
 	if !ok {
 		log.Fatalln("bigint member function called on non-bigint value")
 	}
@@ -44,8 +44,8 @@ func (t *BigintType) SerializeTo(v *Value, storage *bytes.Buffer) error {
 	return binary.Write(storage, binary.LittleEndian, val)
 }
 
-func (t *BigintType) DeserializeFrom(storage *bytes.Buffer) (*Value, error) {
-	var val int64
+func (t *IntegerType) DeserializeFrom(storage *bytes.Buffer) (*Value, error) {
+	var val int32
 	err := binary.Read(storage, binary.LittleEndian, &val)
 	if err != nil {
 		return nil, err

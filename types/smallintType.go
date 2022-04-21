@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -18,7 +18,7 @@ type SmallintType struct {
 
 func newSmallintType() *SmallintType {
 	return &SmallintType{
-		*newIntegerBaseType(TINYINT),
+		*newIntegerBaseType(SMALLINT),
 	}
 }
 

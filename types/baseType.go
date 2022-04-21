@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -23,15 +23,23 @@ func (t *BaseType) IsCoercableFrom(id TypeID) bool {
 	case BOOLEAN:
 		return true
 	case TINYINT:
+		fallthrough
 	case SMALLINT:
+		fallthrough
 	case INTEGER:
+		fallthrough
 	case BIGINT:
+		fallthrough
 	case DECIMAL:
 		switch id {
 		case TINYINT:
+			fallthrough
 		case SMALLINT:
+			fallthrough
 		case INTEGER:
+			fallthrough
 		case BIGINT:
+			fallthrough
 		case DECIMAL:
 			return true
 		default:
@@ -51,7 +59,7 @@ func (t *BaseType) IsCoercableFrom(id TypeID) bool {
 	}
 
 	// stupidity check
-	log.Fatalln("If this prints out, there's a code error")
+	log.Fatalln("If this prints out, it means the author is stupid and you'll have to rewrite this function yourself")
 	return false
 }
 
@@ -107,10 +115,8 @@ func (t *BaseType) Sqrt(v *Value) (*Value, error) {
 	switch v.typeID {
 	case TINYINT:
 		val = float64(v.val.(int8))
-		break
 	case SMALLINT:
 		val = float64(v.val.(int16))
-		break
 	case INTEGER:
 		val = float64(v.val.(int32))
 	case BIGINT:
@@ -152,19 +158,14 @@ func (t *BaseType) IsZero(v *Value) (bool, error) {
 	switch v.val.(type) {
 	case int8:
 		val = float64(v.val.(int8))
-		break
 	case int16:
 		val = float64(v.val.(int16))
-		break
 	case int32:
 		val = float64(v.val.(int32))
-		break
 	case int64:
 		val = float64(v.val.(int64))
-		break
 	case float64:
 		val = v.val.(float64)
-		break
 	default:
 		return false, common.NewError(common.INCOMPATIBLE_TYPE,
 			"This type has no zero value")

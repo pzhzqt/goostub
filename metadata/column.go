@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -9,14 +9,13 @@ import (
 	"fmt"
 	"goostub/execution/expressions"
 	"goostub/types"
-	"log"
 	"strings"
 )
 
 type Column struct {
 	columnName     string
 	columnType     types.TypeID
-	fixedLength    uint32 // for non-inlined column this is the size of a pointer
+	fixedLength    uint32 // for non-inlined column this is size of int
 	variableLength uint32 // 0 for inlined column
 	columnOffset   uint32 // column offset in the tuple
 
@@ -24,9 +23,6 @@ type Column struct {
 }
 
 func NewColumn(colName string, id types.TypeID, expr *expressions.AbstractExpression) *Column {
-	if id == types.VARCHAR {
-		log.Fatalln("Wrong constructor for varchar type")
-	}
 	return &Column{
 		columnName:  colName,
 		columnType:  id,
@@ -35,18 +31,7 @@ func NewColumn(colName string, id types.TypeID, expr *expressions.AbstractExpres
 	}
 }
 
-func NewVarcharColumn(colName string, id types.TypeID, length uint32, expr *expressions.AbstractExpression) *Column {
-	if id != types.VARCHAR {
-		log.Fatalln("Wrong constructor for non-varchar type")
-	}
-	return &Column{
-		columnName:     colName,
-		columnType:     id,
-		fixedLength:    typeSize(id),
-		variableLength: length,
-		expr:           expr,
-	}
-}
+// Different from BusTub: there's not a separate constructor for varchar type where variablelength is specified. The column struct is a part of schema which is supposed to be metadata and can exist without data. Therefore, variableLength should always start from 0 and increase as inserting tuples to the table and thus a separate constructor is redundant
 
 func (c *Column) GetName() string {
 	return c.columnName
@@ -106,10 +91,7 @@ func typeSize(id types.TypeID) uint32 {
 	case types.TIMESTAMP:
 		return 8
 	case types.VARCHAR:
-		// TODO: confirm this
-		return 12
-	default:
-		break
+		return 4
 	}
 	return 0
 }

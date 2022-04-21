@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -295,8 +295,11 @@ func (t *IntegerBaseType) CastAs(v *Value, id TypeID) (*Value, error) {
 
 	switch id {
 	case TINYINT:
+		fallthrough
 	case SMALLINT:
+		fallthrough
 	case INTEGER:
+		fallthrough
 	case BIGINT:
 		return NewValue(id, val), nil
 	case DECIMAL:
@@ -307,8 +310,6 @@ func (t *IntegerBaseType) CastAs(v *Value, id TypeID) (*Value, error) {
 			return nil, err
 		}
 		return NewValue(id, s), nil
-	default:
-		break
 	}
 
 	return nil, common.NewErrorf(common.INVALID,
@@ -344,8 +345,6 @@ func getValAsBIGINT(v *Value) int64 {
 		return int64(v.val.(int32))
 	case BIGINT:
 		return v.val.(int64)
-	default:
-		break
 	}
 
 	log.Fatalln("this shouldn't print out")

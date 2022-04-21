@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -123,8 +123,6 @@ func (t *TimestampType) CastAs(v *Value, id TypeID) (*Value, error) {
 		}
 		s, _ := v.ToString()
 		return NewValue(VARCHAR, s), nil
-	default:
-		break
 	}
 
 	return nil, common.NewErrorf(common.CONVERSION, "Timestamp is not coercable to %s", TypeIDToString(v.GetTypeID()))

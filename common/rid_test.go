@@ -17,13 +17,13 @@ func TestRID(t *testing.T) {
 
 	a := NewRID(rid.pageID, rid.slotNum)
 	if a.GetPageId() != rid.pageID || a.GetSlotNum() != rid.slotNum {
-		t.Error("Expected: ", rid.ToString(), "Actual: ", a.ToString())
+		t.Error("Expected: ", rid, "Actual: ", a)
 	}
 
 	var val int64 = 10<<32 | 14
 	b := NewRIDFromInt64(val)
 	if b.GetPageId() != PageID(val>>32) || b.GetSlotNum() != uint32(val&0xffffffff) {
-		t.Error("Expected: PageID: ", val>>32, " SlotNum: ", val&0xffffffff, "\nActual: ", b.ToString())
+		t.Error("Expected: PageID: ", val>>32, " SlotNum: ", val&0xffffffff, "\nActual: ", b)
 	}
 
 	if b.Get() != val {

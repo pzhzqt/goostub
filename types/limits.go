@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -69,8 +69,6 @@ func GetNull(id TypeID) interface{} {
 		return GOOSTUB_DECIMAL_NULL
 	case TIMESTAMP:
 		return GOOSTUB_TIMESTAMP_NULL
-	default:
-		break
 	}
 
 	return nil

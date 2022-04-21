@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -101,7 +101,7 @@ func (t *VarcharType) SerializeTo(v *Value, storage *bytes.Buffer) error {
 	if !ok {
 		log.Fatalln("varchar member function called on non-varchar value")
 	}
-	err := binary.Write(storage, binary.LittleEndian, int32(len(val))) // int is not fixed-length type, need int32
+	err := binary.Write(storage, binary.LittleEndian, uint32(len(val))) // int is not fixed-length type
 	if err != nil {
 		return err
 	}
@@ -178,8 +178,6 @@ func (t *VarcharType) CastAs(v *Value, id TypeID) (*Value, error) {
 		return NewValue(id, intval), nil
 	case VARCHAR:
 		return v.Copy(), nil
-	default:
-		break
 	}
 
 	return nil, common.NewErrorf(common.MISMATCH_TYPE, "Varchar is not coercable to %s", TypeIDToString(id))

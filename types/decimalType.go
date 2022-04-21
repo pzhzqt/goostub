@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -230,7 +230,7 @@ func (t *DecimalType) CastAs(v *Value, id TypeID) (*Value, error) {
 		return newNullValue(id), nil
 	}
 
-	val := getValAsDecimal(v)
+	val := v.val.(float64)
 	var msg string = "Numeric Value out of range"
 
 	switch id {
@@ -262,8 +262,6 @@ func (t *DecimalType) CastAs(v *Value, id TypeID) (*Value, error) {
 			return nil, err
 		}
 		return NewValue(id, s), nil
-	default:
-		break
 	}
 
 	return nil, common.NewErrorf(common.INVALID,
