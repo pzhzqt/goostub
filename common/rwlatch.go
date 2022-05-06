@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -18,9 +18,9 @@ type ReaderWriterLatch interface {
 }
 
 type readerWriterLatch struct {
-	mutex         *sync.Mutex
-	writer        *sync.Cond
-	reader        *sync.Cond
+	mutex         sync.Mutex
+	writer        sync.Cond
+	reader        sync.Cond
 	readerCount   uint32
 	writerEntered bool
 }
@@ -29,16 +29,14 @@ const (
 	MaxReaders = math.MaxUint32
 )
 
-func NewRWLatch() *readerWriterLatch {
-	latch := readerWriterLatch{}
-
-	latch.mutex = new(sync.Mutex)
-	latch.reader = sync.NewCond(latch.mutex)
-	latch.writer = sync.NewCond(latch.mutex)
-
-	latch.readerCount = 0
-	latch.writerEntered = false
-
+func NewRWLatch() ReaderWriterLatch {
+	latch := readerWriterLatch{
+		mutex:         sync.Mutex{},
+		readerCount:   0,
+		writerEntered: false,
+	}
+	latch.reader = sync.Cond{L: &latch.mutex}
+	latch.writer = sync.Cond{L: &latch.mutex}
 	return &latch
 }
 
