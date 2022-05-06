@@ -17,6 +17,17 @@ type ReaderWriterLatch interface {
 	RUnlock()
 }
 
+func NewRWLatch() ReaderWriterLatch {
+	latch := readerWriterLatch{
+		mutex:         sync.Mutex{},
+		readerCount:   0,
+		writerEntered: false,
+	}
+	latch.reader = sync.Cond{L: &latch.mutex}
+	latch.writer = sync.Cond{L: &latch.mutex}
+	return &latch
+}
+
 type readerWriterLatch struct {
 	mutex         sync.Mutex
 	writer        sync.Cond
@@ -28,17 +39,6 @@ type readerWriterLatch struct {
 const (
 	MaxReaders = math.MaxUint32
 )
-
-func NewRWLatch() ReaderWriterLatch {
-	latch := readerWriterLatch{
-		mutex:         sync.Mutex{},
-		readerCount:   0,
-		writerEntered: false,
-	}
-	latch.reader = sync.Cond{L: &latch.mutex}
-	latch.writer = sync.Cond{L: &latch.mutex}
-	return &latch
-}
 
 func (l *readerWriterLatch) WLock() {
 	l.mutex.Lock()
