@@ -3,10 +3,11 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-package concurrency
+package transaction
 
 import (
 	"goostub/common"
+	"goostub/concurrency"
 	"goostub/recovery"
 	"sync"
 	"sync/atomic"
@@ -17,7 +18,7 @@ var TxnMapMutex = sync.RWMutex{}
 
 type TransactionManager struct {
 	nextTxnId      common.TxnID //operation needs to be atomic on this
-	lockManager    *LockManager
+	lockManager    *concurrency.LockManager
 	logManager     *recovery.LogManager
 	globalTxnLatch sync.RWMutex
 }

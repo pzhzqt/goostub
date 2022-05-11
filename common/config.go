@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -38,3 +38,6 @@ type TxnID int32        // transaction id type
 type LSN int32          // log sequence number
 type SlotOffset uintptr // slot offset type
 type OID uint16
+type TableOID uint32
+type IndexOID uint32
+type ColumnOID uint32

@@ -10,7 +10,7 @@ import (
 	"encoding/binary"
 	"github.com/go-kit/kit/log/level"
 	"goostub/common"
-	"goostub/metadata"
+	"goostub/schema"
 	"goostub/types"
 	"log"
 	"reflect"
@@ -36,7 +36,7 @@ func NewTuple(args ...interface{}) *Tuple {
 		}
 	case 2:
 		if vals, ok := args[0].([]*types.Value); ok {
-			if schema, ok := args[1].(*metadata.Schema); ok {
+			if schema, ok := args[1].(*schema.Schema); ok {
 				return newTupleFromValues(vals, schema)
 			}
 		}
@@ -66,7 +66,7 @@ func CopyTuple(other *Tuple) *Tuple {
 
 func defaultTuple() *Tuple {
 	return &Tuple{
-		rid: *common.DefaultRID(),
+		rid: common.DefaultRID(),
 	}
 }
 
@@ -76,7 +76,7 @@ func newTupleFromRID(rid common.RID) *Tuple {
 	}
 }
 
-func newTupleFromValues(vals []*types.Value, schema *metadata.Schema) *Tuple {
+func newTupleFromValues(vals []*types.Value, schema *schema.Schema) *Tuple {
 	if len(vals) != schema.GetColumnCount() {
 		log.Fatalln("Value and Schema not matched")
 	}
@@ -128,4 +128,8 @@ func (t *Tuple) DeserializeFrom(storage *bytes.Buffer) {
 	t.data = make([]byte, size)
 	binary.Read(storage, binary.LittleEndian, t.data)
 	t.allocated = true
+}
+
+func (t *Tuple) GetData() []byte {
+	return t.data
 }

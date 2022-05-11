@@ -1,9 +1,9 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-package metadata
+package schema
 
 import (
 	"fmt"
@@ -50,7 +50,7 @@ func NewSchema(columns []Column) *Schema {
 	return schema
 }
 
-func CopySchema(from *Schema, attrs []int) *Schema {
+func CopySchema(from *Schema, attrs []uint32) *Schema {
 	cols := make([]Column, len(attrs))
 	for i := 0; i < len(attrs); i++ {
 		cols[i] = from.columns[attrs[i]]

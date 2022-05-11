@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Qitian Zeng
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -7,6 +7,8 @@ package common
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"log"
 )
 
 type ErrID int
@@ -66,3 +68,12 @@ func CheckErrorType(err error, id ErrID) bool {
 	}
 	return true
 }
+
+// helper struct for using assert in non-unittest
+type assertHelper struct{}
+
+func (a assertHelper) Errorf(format string, args ...interface{}) {
+	log.Fatalf(format, args...)
+}
+
+var Assert = assert.New(assertHelper{})

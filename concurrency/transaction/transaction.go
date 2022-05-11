@@ -3,10 +3,9 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-package concurrency
+package transaction
 
 import (
-	"fmt"
 	"github.com/gammazero/deque"
 	"goostub/catalog"
 	"goostub/common"

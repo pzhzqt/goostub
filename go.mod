@@ -3,6 +3,7 @@ module goostub
 go 1.18
 
 require (
+	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/gammazero/deque v0.1.1
 	github.com/go-kit/kit v0.12.0
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259

@@ -70,9 +70,6 @@ const (
 	Update
 )
 
-type TableOID uint32
-type IndexOID uint32
-
 // Reason to a transaction abortion
 type AbortReason uint8
 
