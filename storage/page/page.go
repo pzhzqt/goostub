@@ -55,7 +55,7 @@ func NewPage() Page {
 
 func (p *PageInstance) resetMemory() {
 	for i := range p.Data {
-		p.Data[i] = offsetPageStart
+		p.Data[i] = 0
 	}
 }
 

@@ -58,7 +58,7 @@ type extendibleHashTable struct {
 	directoryPageId common.PageID
 	bufferManager   *buffer.BufferPoolManager
 	tableLatch      common.ReaderWriterLatch
-	keySize         uint8
+	keySize         uint32
 }
 
 /**

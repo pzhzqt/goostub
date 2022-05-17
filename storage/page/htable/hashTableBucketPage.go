@@ -8,30 +8,40 @@ package htable
 import (
 	"goostub/common"
 	"goostub/hash"
-	"reflect"
+	"goostub/storage/page"
 	"unsafe"
 )
 
 /**
- * Store indexed key and and value together within bucket page. Supports
- * non-unique keys.
- *
- * Bucket page starts with one byte indicating the key size in byte (255 is big enough for our need)
- * page format (keys are stored in order):
- *  ----------------------------------------------------------------
- * keySize | occupied(n bits) | readable(n bits) | KEY(1) + VALUE(1) | ... | KEY(n) + VALUE(n)
- *  ----------------------------------------------------------------
- *
- *  Here '+' means concatenation.
+* Store indexed key and and value together within bucket page. Supports
+* non-unique keys.
+*
+* page format (keys are stored in order):
+*  ----------------------------------------------------------------
+*  occupied(n bits) | readable(n bits) | KEY(1) + VALUE(1) | ... | KEY(n) + VALUE(n)
+*  ----------------------------------------------------------------
+*
+*  Here '+' means concatenation.
  */
+
+// apart from keySize, fields are references to the actual page in buffer pool
 type HashTableBucketPage struct {
-	keySize uint8
-	/*
-	   logical layout:
-	      occupied [(bucketArraySize-1)/8+1]byte
-	      readable [(bucketArraySize-1)/8+1]byte
-	      kvArray [bucketArraySize * size of keyVal]byte
-	*/
+	keySize  uint32
+	occupied []byte
+	readable []byte
+	kvArray  []byte
+}
+
+// get a bucket page pointer to existing page
+func PageAsBucketPage(page page.Page, keySize uint32) *HashTableBucketPage {
+	d := page.GetData()
+	p := &HashTableBucketPage{
+		keySize: keySize,
+	}
+	p.occupied = d[:p.bitArraySize()]
+	p.readable = d[p.bitArraySize() : 2*p.bitArraySize()]
+	p.kvArray = d[2*p.bitArraySize():]
+	return p
 }
 
 /**
@@ -40,6 +50,7 @@ type HashTableBucketPage struct {
  * @return true if at least one key matched
  */
 func (h *HashTableBucketPage) GetValue(key []byte, result *[]common.RID) bool {
+	return false
 }
 
 /**
@@ -51,6 +62,7 @@ func (h *HashTableBucketPage) GetValue(key []byte, result *[]common.RID) bool {
  * @return true if inserted, false if duplicate KV pair or bucket is full
  */
 func (p *HashTableBucketPage) Insert(key []byte, value common.RID) bool {
+	return false
 }
 
 /**
@@ -59,66 +71,37 @@ func (p *HashTableBucketPage) Insert(key []byte, value common.RID) bool {
  * @return true if removed, false if not found
  */
 func (p *HashTableBucketPage) Remove(key []byte, value common.RID) bool {
-}
-
-/**
- * Gets the key at an index in the bucket.
- *
- * @param bucket_idx the index in the bucket to get the key at
- * @return key at index bucket_idx of the bucket
- */
-func (p *HashTableBucketPage) KeyAt(bucketIdx int) []byte {
-}
-
-/**
- * Gets the value at an index in the bucket.
- *
- * @param bucket_idx the index in the bucket to get the value at
- * @return value at index bucket_idx of the bucket
- */
-func (h *HashTableBucketPage) ValueAt(bucketIdx int) common.RID {
+	return false
 }
 
 /**
  * Remove the KV pair at bucket_idx
  */
-func (p *HashTableBucketPage) RemoveAt(bucketIdx int) {
+func (p *HashTableBucketPage) RemoveAt(bucketIdx uint32) {
 }
 
 // helper functions
 
-func (p *HashTableBucketPage) kvSize() int {
-	return int(p.keySize) + int(unsafe.Sizeof(common.RID{}))
+func (p *HashTableBucketPage) kvSize() uint32 {
+	return p.keySize + uint32(unsafe.Sizeof(common.RID{}))
 }
 
-func (p *HashTableBucketPage) bucketArraySize() int {
-	//    1    +        2*((x-1)/8+1)      +   (key size + value size)*x   <=  pageSize
-	// keySize      occupied + readable               kvArray
-	return (4*common.PageSize - 11) / (4*p.kvSize() + 1)
+func (p *HashTableBucketPage) bucketArraySize() uint32 {
+	//     2*((x-1)/8+1)      +   (kv size)*x   <=  pageSize
+	// occupied + readable         kvArray
+	return (4*common.PageSize - 7) / (4*p.kvSize() + 1)
 }
 
-func (p *HashTableBucketPage) bitArraySize() int {
-	return int((p.bucketArraySize()-1)/8 + 1)
+func (p *HashTableBucketPage) bitArraySize() uint32 {
+	return (p.bucketArraySize()-1)/8 + 1
 }
 
-// return reference to the occupied bit array as a byte slice
-// you can think of it as p.occupied
-func (p *HashTableBucketPage) getOccupied(bucketIdx int) []byte {
-	sh := reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(p)) + 1,
-		Len:  p.bitArraySize(),
-		Cap:  p.bitArraySize(),
-	}
-	return *(*[]byte)(unsafe.Pointer(&sh))
+// get a reference to the key at bucketIdx in this page
+func (p *HashTableBucketPage) keyAt(bucketIdx uint32) []byte {
+	return p.kvArray[bucketIdx*p.kvSize() : bucketIdx*p.kvSize()+p.keySize]
 }
 
-// return reference to the readable bit array as a byte slice
-// you can think of it as p.readable
-func (p *HashTableBucketPage) getReadable() []byte {
-	sh := reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(p)) + 1 + uintptr(p.bitArraySize()),
-		Len:  p.bitArraySize(),
-		Cap:  p.bitArraySize(),
-	}
-	return *(*[]byte)(unsafe.Pointer(&sh))
+// get the value (RID) at bucketIdx in this page, use a pointer so it's mutable
+func (p *HashTableBucketPage) valueAt(bucketIdx uint32) *common.RID {
+	return (*common.RID)(unsafe.Pointer(&p.kvArray[bucketIdx*p.kvSize()+p.keySize]))
 }
